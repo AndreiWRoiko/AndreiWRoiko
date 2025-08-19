@@ -1,0 +1,203 @@
+from flask import render_template, request, redirect, url_for, flash, jsonify
+from app import app, db
+from models import Equipment
+from forms import EquipmentForm, SearchForm
+from utils import export_to_excel, export_to_pdf, create_uf_chart, create_value_chart, filter_equipment
+import json
+
+@app.route('/')
+def dashboard():
+    """Main dashboard route"""
+    stats = Equipment.get_dashboard_stats()
+    uf_data = Equipment.get_by_uf()
+    cnpj_data = Equipment.get_valor_by_cnpj()
+    
+    # Create charts
+    uf_chart = create_uf_chart(uf_data) if uf_data else '{}'
+    value_chart = create_value_chart(cnpj_data) if cnpj_data else '{}'
+    
+    return render_template('dashboard.html', 
+                         stats=stats, 
+                         uf_chart=uf_chart,
+                         value_chart=value_chart)
+
+@app.route('/equipment')
+def equipment_list():
+    """Equipment list with search and filtering"""
+    search_form = SearchForm(request.args)
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    
+    if search_form.validate():
+        equipment = filter_equipment(search_form)
+        # Manual pagination for filtered results
+        total = len(equipment)
+        start = (page - 1) * per_page
+        end = start + per_page
+        equipment = equipment[start:end]
+        
+        # Create pagination object manually
+        pagination = {
+            'page': page,
+            'per_page': per_page,
+            'total': total,
+            'pages': (total + per_page - 1) // per_page,
+            'has_prev': page > 1,
+            'has_next': page < ((total + per_page - 1) // per_page),
+            'prev_num': page - 1 if page > 1 else None,
+            'next_num': page + 1 if page < ((total + per_page - 1) // per_page) else None
+        }
+    else:
+        equipment_query = Equipment.query.paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+        equipment = equipment_query.items
+        pagination = {
+            'page': equipment_query.page,
+            'per_page': equipment_query.per_page,
+            'total': equipment_query.total,
+            'pages': equipment_query.pages,
+            'has_prev': equipment_query.has_prev,
+            'has_next': equipment_query.has_next,
+            'prev_num': equipment_query.prev_num,
+            'next_num': equipment_query.next_num
+        }
+    
+    return render_template('equipment_list.html', 
+                         equipment=equipment, 
+                         search_form=search_form,
+                         pagination=pagination)
+
+@app.route('/equipment/new', methods=['GET', 'POST'])
+def equipment_new():
+    """Create new equipment"""
+    form = EquipmentForm()
+    
+    if form.validate_on_submit():
+        # Check if patrimonio already exists
+        existing = Equipment.query.filter_by(patrimonio=form.patrimonio.data).first()
+        if existing:
+            flash('Patrimônio já existe no sistema!', 'error')
+            return render_template('equipment_form.html', form=form, title='Novo Equipamento')
+        
+        equipment = Equipment(
+            responsavel=form.responsavel.data,
+            uf=form.uf.data,
+            cc=form.cc.data,
+            cnpj=form.cnpj.data,
+            modelo=form.modelo.data,
+            status=form.status.data,
+            patrimonio=form.patrimonio.data,
+            valor=form.valor.data,
+            marca=form.marca.data,
+            processador=form.processador.data,
+            memoria_ram=form.memoria_ram.data,
+            hd_ssd=form.hd_ssd.data,
+            sistema_operacional=form.sistema_operacional.data,
+            antivirus=form.antivirus.data,
+            termo_assinado=form.termo_assinado.data,
+            milvus_funcionando=form.milvus_funcionando.data,
+            data_aquisicao=form.data_aquisicao.data,
+            data_baixa=form.data_baixa.data,
+            endereco=form.endereco.data,
+            telefone=form.telefone.data,
+            email=form.email.data
+        )
+        
+        db.session.add(equipment)
+        db.session.commit()
+        flash('Equipamento adicionado com sucesso!', 'success')
+        return redirect(url_for('equipment_list'))
+    
+    return render_template('equipment_form.html', form=form, title='Novo Equipamento')
+
+@app.route('/equipment/<int:id>')
+def equipment_detail(id):
+    """Equipment detail view"""
+    equipment = Equipment.query.get_or_404(id)
+    return render_template('equipment_detail.html', equipment=equipment)
+
+@app.route('/equipment/<int:id>/edit', methods=['GET', 'POST'])
+def equipment_edit(id):
+    """Edit equipment"""
+    equipment = Equipment.query.get_or_404(id)
+    form = EquipmentForm(obj=equipment)
+    
+    if form.validate_on_submit():
+        # Check if patrimonio already exists (excluding current equipment)
+        existing = Equipment.query.filter(
+            Equipment.patrimonio == form.patrimonio.data,
+            Equipment.id != id
+        ).first()
+        if existing:
+            flash('Patrimônio já existe no sistema!', 'error')
+            return render_template('equipment_form.html', form=form, title='Editar Equipamento')
+        
+        # Update equipment fields
+        equipment.responsavel = form.responsavel.data
+        equipment.uf = form.uf.data
+        equipment.cc = form.cc.data
+        equipment.cnpj = form.cnpj.data
+        equipment.modelo = form.modelo.data
+        equipment.status = form.status.data
+        equipment.patrimonio = form.patrimonio.data
+        equipment.valor = form.valor.data
+        equipment.marca = form.marca.data
+        equipment.processador = form.processador.data
+        equipment.memoria_ram = form.memoria_ram.data
+        equipment.hd_ssd = form.hd_ssd.data
+        equipment.sistema_operacional = form.sistema_operacional.data
+        equipment.antivirus = form.antivirus.data
+        equipment.termo_assinado = form.termo_assinado.data
+        equipment.milvus_funcionando = form.milvus_funcionando.data
+        equipment.data_aquisicao = form.data_aquisicao.data
+        equipment.data_baixa = form.data_baixa.data
+        equipment.endereco = form.endereco.data
+        equipment.telefone = form.telefone.data
+        equipment.email = form.email.data
+        
+        db.session.commit()
+        flash('Equipamento atualizado com sucesso!', 'success')
+        return redirect(url_for('equipment_detail', id=id))
+    
+    return render_template('equipment_form.html', form=form, title='Editar Equipamento', equipment=equipment)
+
+@app.route('/equipment/<int:id>/delete', methods=['POST'])
+def equipment_delete(id):
+    """Delete equipment"""
+    equipment = Equipment.query.get_or_404(id)
+    db.session.delete(equipment)
+    db.session.commit()
+    flash('Equipamento removido com sucesso!', 'success')
+    return redirect(url_for('equipment_list'))
+
+@app.route('/export/excel')
+def export_excel():
+    """Export equipment to Excel"""
+    search_form = SearchForm(request.args)
+    if search_form.validate():
+        equipment = filter_equipment(search_form)
+    else:
+        equipment = Equipment.query.all()
+    
+    return export_to_excel(equipment)
+
+@app.route('/export/pdf')
+def export_pdf():
+    """Export equipment to PDF"""
+    search_form = SearchForm(request.args)
+    if search_form.validate():
+        equipment = filter_equipment(search_form)
+    else:
+        equipment = Equipment.query.all()
+    
+    return export_to_pdf(equipment)
+
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    db.session.rollback()
+    return render_template('500.html'), 500

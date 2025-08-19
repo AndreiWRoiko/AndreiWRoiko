@@ -1,0 +1,99 @@
+from app import db
+from datetime import datetime
+from sqlalchemy import func
+
+class Equipment(db.Model):
+    __tablename__ = 'equipment'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    responsavel = db.Column(db.String(100), nullable=False)
+    uf = db.Column(db.String(2), nullable=False)
+    cc = db.Column(db.String(20), nullable=False)  # Centro de Custo
+    cnpj = db.Column(db.String(18), nullable=False)
+    modelo = db.Column(db.String(100), nullable=False)
+    status = db.Column(db.String(50), nullable=False, default='Em uso')
+    patrimonio = db.Column(db.String(50), unique=True, nullable=False)
+    valor = db.Column(db.Float, nullable=False, default=0.0)
+    
+    # Additional fields for comprehensive tracking
+    marca = db.Column(db.String(50), nullable=True)
+    processador = db.Column(db.String(100), nullable=True)
+    memoria_ram = db.Column(db.String(20), nullable=True)
+    hd_ssd = db.Column(db.String(50), nullable=True)
+    sistema_operacional = db.Column(db.String(50), nullable=True)
+    antivirus = db.Column(db.Boolean, default=False)
+    termo_assinado = db.Column(db.Boolean, default=False)
+    milvus_funcionando = db.Column(db.Boolean, default=False)
+    
+    # Dates
+    data_aquisicao = db.Column(db.Date, nullable=True)
+    data_baixa = db.Column(db.Date, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Location and contact
+    endereco = db.Column(db.String(200), nullable=True)
+    telefone = db.Column(db.String(20), nullable=True)
+    email = db.Column(db.String(100), nullable=True)
+    
+    def __repr__(self):
+        return f'<Equipment {self.patrimonio}: {self.modelo}>'
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'responsavel': self.responsavel,
+            'uf': self.uf,
+            'cc': self.cc,
+            'cnpj': self.cnpj,
+            'modelo': self.modelo,
+            'status': self.status,
+            'patrimonio': self.patrimonio,
+            'valor': self.valor,
+            'marca': self.marca,
+            'processador': self.processador,
+            'memoria_ram': self.memoria_ram,
+            'hd_ssd': self.hd_ssd,
+            'sistema_operacional': self.sistema_operacional,
+            'antivirus': self.antivirus,
+            'termo_assinado': self.termo_assinado,
+            'milvus_funcionando': self.milvus_funcionando,
+            'data_aquisicao': self.data_aquisicao.isoformat() if self.data_aquisicao else None,
+            'data_baixa': self.data_baixa.isoformat() if self.data_baixa else None,
+            'endereco': self.endereco,
+            'telefone': self.telefone,
+            'email': self.email
+        }
+    
+    @staticmethod
+    def get_dashboard_stats():
+        """Get dashboard statistics"""
+        total = Equipment.query.count()
+        em_uso = Equipment.query.filter_by(status='Em uso').count()
+        sem_antivirus = Equipment.query.filter_by(antivirus=False).count()
+        sem_termo = Equipment.query.filter_by(termo_assinado=False).count()
+        valor_total = db.session.query(func.sum(Equipment.valor)).scalar() or 0
+        
+        return {
+            'total': total,
+            'em_uso': em_uso,
+            'sem_antivirus': sem_antivirus,
+            'sem_termo': sem_termo,
+            'valor_total': valor_total
+        }
+    
+    @staticmethod
+    def get_by_uf():
+        """Get equipment count by UF"""
+        return db.session.query(
+            Equipment.uf, 
+            func.count(Equipment.id).label('count')
+        ).group_by(Equipment.uf).all()
+    
+    @staticmethod
+    def get_valor_by_cnpj():
+        """Get total value by CNPJ"""
+        return db.session.query(
+            Equipment.cnpj,
+            func.sum(Equipment.valor).label('total_valor')
+        ).group_by(Equipment.cnpj).all()
