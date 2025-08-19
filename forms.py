@@ -1,4 +1,5 @@
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileRequired, FileAllowed
 from wtforms import StringField, FloatField, SelectField, BooleanField, DateField, TextAreaField
 from wtforms.validators import DataRequired, Email, Optional, NumberRange
 from datetime import date
@@ -71,3 +72,9 @@ class SearchForm(FlaskForm):
     ])
     cnpj = StringField('CNPJ')
     cc = StringField('Centro de Custo')
+
+class ImportForm(FlaskForm):
+    file = FileField('Arquivo Excel', validators=[
+        FileRequired(message='Por favor, selecione um arquivo'),
+        FileAllowed(['xlsx', 'xls'], message='Apenas arquivos Excel (.xlsx, .xls) são permitidos')
+    ])

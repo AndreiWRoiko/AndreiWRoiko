@@ -1,9 +1,11 @@
 from flask import render_template, request, redirect, url_for, flash, jsonify
 from app import app, db
 from models import Equipment
-from forms import EquipmentForm, SearchForm
-from utils import export_to_excel, export_to_pdf, create_uf_chart, create_value_chart, filter_equipment
+from forms import EquipmentForm, SearchForm, ImportForm
+from utils import export_to_excel, export_to_pdf, create_uf_chart, create_value_chart, filter_equipment, import_from_excel
 import json
+import os
+from werkzeug.utils import secure_filename
 
 @app.route('/')
 def dashboard():
@@ -192,6 +194,85 @@ def export_pdf():
         equipment = Equipment.query.all()
     
     return export_to_pdf(equipment)
+
+@app.route('/import', methods=['GET', 'POST'])
+def import_equipment():
+    """Import equipment from Excel file"""
+    form = ImportForm()
+    
+    if form.validate_on_submit():
+        file = form.file.data
+        filename = secure_filename(file.filename)
+        
+        # Create uploads directory if it doesn't exist
+        upload_dir = app.config['UPLOAD_FOLDER']
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # Save uploaded file
+        file_path = os.path.join(upload_dir, filename)
+        file.save(file_path)
+        
+        try:
+            # Import data from Excel
+            result = import_from_excel(file_path)
+            
+            # Clean up uploaded file
+            os.remove(file_path)
+            
+            if result['success']:
+                flash(f'Importação concluída com sucesso! {result["imported_count"]} equipamentos importados.', 'success')
+                if result['error_count'] > 0:
+                    flash(f'{result["error_count"]} linhas tiveram erros e foram ignoradas.', 'warning')
+                    # Show first few errors
+                    for error in result['errors'][:5]:  # Show first 5 errors
+                        flash(error, 'warning')
+                    if len(result['errors']) > 5:
+                        flash(f'... e mais {len(result["errors"]) - 5} erros.', 'warning')
+            else:
+                flash('Falha na importação. Verifique o formato do arquivo.', 'error')
+                for error in result['errors']:
+                    flash(error, 'error')
+            
+            return redirect(url_for('equipment_list'))
+            
+        except Exception as e:
+            # Clean up uploaded file on error
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            flash(f'Erro ao processar arquivo: {str(e)}', 'error')
+    
+    return render_template('import_form.html', form=form)
+
+@app.route('/download-template')
+def download_template():
+    """Download Excel template for import"""
+    # Create a sample equipment list with proper headers for template
+    sample_data = [{
+        'ID': '',
+        'Responsável': 'João Silva',
+        'UF': 'SP',
+        'Centro de Custo': 'TI001',
+        'CNPJ': '12.345.678/0001-90',
+        'Modelo': 'Dell OptiPlex 3090',
+        'Status': 'Em uso',
+        'Patrimônio': 'PAT001',
+        'Valor': 2500.00,
+        'Marca': 'Dell',
+        'Processador': 'Intel Core i5',
+        'Memória RAM': '8GB',
+        'HD/SSD': 'SSD 256GB',
+        'Sistema Operacional': 'Windows 11',
+        'Antivírus': 'Sim',
+        'Termo Assinado': 'Sim',
+        'Milvus Funcionando': 'Não',
+        'Data Aquisição': '15/01/2024',
+        'Data Baixa': '',
+        'Endereço': 'Av. Paulista, 1000',
+        'Telefone': '(11) 9999-8888',
+        'Email': 'joao.silva@empresa.com'
+    }]
+    
+    return export_to_excel(sample_data)
 
 @app.errorhandler(404)
 def not_found_error(error):

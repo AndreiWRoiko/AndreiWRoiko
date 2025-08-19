@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}Importar Equipamentos - Sistema de Inventário{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="fas fa-file-import me-2"></i>
+                Importar Equipamentos
+            </h1>
+            <a href="{{ url_for('equipment_list') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Voltar à Lista
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <!-- Instructions Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Como Importar
+                </h5>
+            </div>
+            <div class="card-body">
+                <ol class="mb-3">
+                    <li><strong>Baixe o modelo de planilha</strong> clicando no botão abaixo</li>
+                    <li><strong>Preencha os dados</strong> seguindo o formato do exemplo</li>
+                    <li><strong>Salve como arquivo Excel</strong> (.xlsx ou .xls)</li>
+                    <li><strong>Faça o upload</strong> usando o formulário abaixo</li>
+                </ol>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Dicas importantes:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>O campo <strong>Patrimônio</strong> deve ser único para cada equipamento</li>
+                        <li>Campos obrigatórios: Responsável, UF, Centro de Custo, CNPJ, Modelo e Patrimônio</li>
+                        <li>Para campos Sim/Não, use: "Sim", "Não", "True", "False", "1", "0"</li>
+                        <li>Datas devem estar no formato DD/MM/AAAA</li>
+                        <li>Valores monetários podem usar R$ e separadores de milhar</li>
+                    </ul>
+                </div>
+                
+                <div class="text-center">
+                    <a href="{{ url_for('download_template') }}" class="btn btn-success">
+                        <i class="fas fa-download me-2"></i>Baixar Modelo de Planilha
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Form -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-upload me-2"></i>
+                    Fazer Upload da Planilha
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data" novalidate>
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-4">
+                        {{ form.file.label(class="form-label fw-bold") }}
+                        {{ form.file(class="form-control" + (" is-invalid" if form.file.errors else ""), accept=".xlsx,.xls") }}
+                        {% if form.file.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.file.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            Arquivos suportados: Excel (.xlsx, .xls). Tamanho máximo: 10MB
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{{ url_for('equipment_list') }}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary" id="uploadBtn">
+                            <i class="fas fa-upload me-2"></i>Importar Dados
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Format Example -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-table me-2"></i>
+                    Exemplo de Formato
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Responsável</th>
+                                <th>UF</th>
+                                <th>Centro de Custo</th>
+                                <th>CNPJ</th>
+                                <th>Modelo</th>
+                                <th>Status</th>
+                                <th>Patrimônio</th>
+                                <th>Valor</th>
+                                <th>...</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>João Silva</td>
+                                <td>SP</td>
+                                <td>TI001</td>
+                                <td>12.345.678/0001-90</td>
+                                <td>Dell OptiPlex 3090</td>
+                                <td>Em uso</td>
+                                <td>PAT001</td>
+                                <td>R$ 2.500,00</td>
+                                <td>...</td>
+                            </tr>
+                            <tr>
+                                <td>Maria Santos</td>
+                                <td>RJ</td>
+                                <td>ADM002</td>
+                                <td>98.765.432/0001-10</td>
+                                <td>HP Pavilion</td>
+                                <td>Disponível</td>
+                                <td>PAT002</td>
+                                <td>1800</td>
+                                <td>...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <small class="text-muted">
+                    Este é apenas um exemplo das colunas principais. O modelo completo contém todas as colunas disponíveis.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('file').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const uploadBtn = document.getElementById('uploadBtn');
+    
+    if (file) {
+        // Check file size (10MB limit)
+        if (file.size > 10 * 1024 * 1024) {
+            alert('Arquivo muito grande. O tamanho máximo é 10MB.');
+            e.target.value = '';
+            return;
+        }
+        
+        // Check file type
+        const allowedTypes = ['.xlsx', '.xls'];
+        const fileName = file.name.toLowerCase();
+        const isValidType = allowedTypes.some(type => fileName.endsWith(type));
+        
+        if (!isValidType) {
+            alert('Tipo de arquivo inválido. Use apenas arquivos Excel (.xlsx, .xls).');
+            e.target.value = '';
+            return;
+        }
+        
+        // Show file info
+        uploadBtn.innerHTML = `<i class="fas fa-upload me-2"></i>Importar "${file.name}"`;
+    } else {
+        uploadBtn.innerHTML = '<i class="fas fa-upload me-2"></i>Importar Dados';
+    }
+});
+
+// Show loading state on form submission
+document.querySelector('form').addEventListener('submit', function(e) {
+    const uploadBtn = document.getElementById('uploadBtn');
+    uploadBtn.disabled = true;
+    uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processando...';
+});
+</script>
+{% endblock %}
