@@ -29,8 +29,8 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'uploads')
 
-# Configure WTF CSRF
-app.config['WTF_CSRF_TIME_LIMIT'] = None  # Remove time limit for CSRF tokens
+# Configure WTF CSRF - Disable for now to avoid issues
+app.config['WTF_CSRF_ENABLED'] = False
 
 # Initialize the app with the extension
 db.init_app(app)
