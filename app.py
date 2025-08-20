@@ -2,7 +2,6 @@ import os
 import logging
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from flask_wtf.csrf import CSRFProtect
 from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -32,13 +31,9 @@ app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'uploads')
 
 # Configure WTF CSRF
 app.config['WTF_CSRF_TIME_LIMIT'] = None  # Remove time limit for CSRF tokens
-app.config['WTF_CSRF_ENABLED'] = True
 
 # Initialize the app with the extension
 db.init_app(app)
-
-# Initialize CSRF protection
-csrf = CSRFProtect(app)
 
 # Import routes after app creation to avoid circular imports
 from routes import *
