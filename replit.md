@@ -18,9 +18,10 @@ Preferred communication style: Simple, everyday language.
 
 ### Database Design
 - **Single Table Model**: Equipment table storing all inventory data
-- **SQLite Default**: Development database with PostgreSQL support via environment variables
+- **PostgreSQL Database**: Production-ready database with full feature support
 - **Connection Pooling**: Configured with pool recycling and pre-ping for reliability
 - **Automatic Schema Creation**: Database tables created on application startup
+- **Data Import/Export**: Excel import functionality with template download and comprehensive validation
 
 ### Frontend Architecture
 - **Bootstrap 5**: Dark theme responsive UI framework
@@ -31,8 +32,10 @@ Preferred communication style: Simple, everyday language.
 ### Data Management
 - **Form Validation**: Server-side validation with WTForms
 - **Export Capabilities**: Excel and PDF export functionality
+- **Import Functionality**: Excel file import with duplicate checking and data validation
 - **Search and Filtering**: Multi-criteria equipment search system
 - **Pagination**: Efficient data display for large equipment lists
+- **Template Download**: Excel template generation for consistent data import format
 
 ### Application Structure
 - **Modular Design**: Separated routes, models, forms, and utilities
@@ -63,9 +66,10 @@ Preferred communication style: Simple, everyday language.
 - **Werkzeug**: WSGI utilities and proxy middleware
 
 ### Database Support
-- **SQLite**: Default development database
-- **PostgreSQL**: Production database support via DATABASE_URL environment variable
+- **PostgreSQL**: Primary database with full production capabilities
+- **SQLite**: Fallback option for development
 - **Connection Management**: Automatic pool management and health checks
+- **Sample Data**: Pre-populated with example equipment records for testing
 
 ### Deployment Infrastructure
 - **Environment Variables**: Configuration via SESSION_SECRET and DATABASE_URL
