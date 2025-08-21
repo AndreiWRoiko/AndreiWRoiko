@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired, FileAllowed
-from wtforms import StringField, FloatField, SelectField, BooleanField, DateField, TextAreaField
-from wtforms.validators import DataRequired, Email, Optional, NumberRange
+from wtforms import StringField, FloatField, SelectField, BooleanField, DateField, TextAreaField, FieldList, FormField, HiddenField
+from wtforms.validators import DataRequired, Email, Optional, NumberRange, URL
 from datetime import date
 
 class EquipmentForm(FlaskForm):
@@ -15,7 +15,21 @@ class EquipmentForm(FlaskForm):
         ('SE', 'SE'), ('TO', 'TO')
     ], validators=[DataRequired()])
     cc = StringField('Centro de Custo', validators=[DataRequired()])
-    cnpj = StringField('CNPJ', validators=[DataRequired()])
+    
+    # Campo para múltiplos CNPJs
+    cnpj = TextAreaField('CNPJs (um por linha)', validators=[DataRequired()], 
+                        render_kw={'rows': 3, 'placeholder': 'Digite um CNPJ por linha\nEx: 12.345.678/0001-90\n98.765.432/0001-10'})
+    
+    # Campo fornecedor com opções fixas
+    fornecedor = SelectField('Fornecedor', choices=[
+        ('', 'Selecione um fornecedor...'),
+        ('Fornecedor A', 'Fornecedor A'),
+        ('Fornecedor B', 'Fornecedor B'), 
+        ('Fornecedor C', 'Fornecedor C'),
+        ('Fornecedor D', 'Fornecedor D'),
+        ('Fornecedor E', 'Fornecedor E')
+    ], validators=[Optional()])
+    
     modelo = StringField('Modelo', validators=[DataRequired()])
     status = SelectField('Status', choices=[
         ('Em uso', 'Em uso'),
@@ -51,6 +65,10 @@ class EquipmentForm(FlaskForm):
     endereco = TextAreaField('Endereço', validators=[Optional()])
     telefone = StringField('Telefone', validators=[Optional()])
     email = StringField('Email', validators=[Optional(), Email()])
+    
+    # Novo campo para link dos termos
+    link_termos = StringField('Link dos Termos Assinados', validators=[Optional(), URL()], 
+                             render_kw={'placeholder': 'https://exemplo.com/termo-assinado'})
 
 class SearchForm(FlaskForm):
     search_term = StringField('Buscar')

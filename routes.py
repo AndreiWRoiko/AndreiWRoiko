@@ -82,29 +82,33 @@ def equipment_new():
             flash('Patrimônio já existe no sistema!', 'error')
             return render_template('equipment_form.html', form=form, title='Novo Equipamento')
         
-        equipment = Equipment(
-            responsavel=form.responsavel.data,
-            uf=form.uf.data,
-            cc=form.cc.data,
-            cnpj=form.cnpj.data,
-            modelo=form.modelo.data,
-            status=form.status.data,
-            patrimonio=form.patrimonio.data,
-            valor=form.valor.data,
-            marca=form.marca.data,
-            processador=form.processador.data,
-            memoria_ram=form.memoria_ram.data,
-            hd_ssd=form.hd_ssd.data,
-            sistema_operacional=form.sistema_operacional.data,
-            antivirus=form.antivirus.data,
-            termo_assinado=form.termo_assinado.data,
-            milvus_funcionando=form.milvus_funcionando.data,
-            data_aquisicao=form.data_aquisicao.data,
-            data_baixa=form.data_baixa.data,
-            endereco=form.endereco.data,
-            telefone=form.telefone.data,
-            email=form.email.data
-        )
+        equipment = Equipment()
+        equipment.responsavel = form.responsavel.data
+        equipment.uf = form.uf.data
+        equipment.cc = form.cc.data
+        equipment.cnpj = form.cnpj.data
+        equipment.fornecedor = form.fornecedor.data
+        equipment.modelo = form.modelo.data
+        equipment.status = form.status.data
+        equipment.patrimonio = form.patrimonio.data
+        equipment.valor = form.valor.data
+        equipment.marca = form.marca.data
+        equipment.processador = form.processador.data
+        equipment.memoria_ram = form.memoria_ram.data
+        equipment.hd_ssd = form.hd_ssd.data
+        equipment.sistema_operacional = form.sistema_operacional.data
+        equipment.antivirus = form.antivirus.data
+        equipment.termo_assinado = form.termo_assinado.data
+        equipment.milvus_funcionando = form.milvus_funcionando.data
+        equipment.data_aquisicao = form.data_aquisicao.data
+        equipment.data_baixa = form.data_baixa.data
+        equipment.endereco = form.endereco.data
+        equipment.telefone = form.telefone.data
+        equipment.email = form.email.data
+        equipment.link_termos = form.link_termos.data
+        
+        # Adicionar histórico de criação
+        equipment.add_to_history(f"Equipamento criado por {form.responsavel.data}")
         
         db.session.add(equipment)
         db.session.commit()
@@ -135,11 +139,21 @@ def equipment_edit(id):
             flash('Patrimônio já existe no sistema!', 'error')
             return render_template('equipment_form.html', form=form, title='Editar Equipamento')
         
+        # Track changes for history
+        changes = []
+        if equipment.responsavel != form.responsavel.data:
+            changes.append(f"Responsável: {equipment.responsavel} → {form.responsavel.data}")
+        if equipment.status != form.status.data:
+            changes.append(f"Status: {equipment.status} → {form.status.data}")
+        if equipment.valor != form.valor.data:
+            changes.append(f"Valor: R$ {equipment.valor} → R$ {form.valor.data}")
+        
         # Update equipment fields
         equipment.responsavel = form.responsavel.data
         equipment.uf = form.uf.data
         equipment.cc = form.cc.data
         equipment.cnpj = form.cnpj.data
+        equipment.fornecedor = form.fornecedor.data
         equipment.modelo = form.modelo.data
         equipment.status = form.status.data
         equipment.patrimonio = form.patrimonio.data
@@ -157,6 +171,11 @@ def equipment_edit(id):
         equipment.endereco = form.endereco.data
         equipment.telefone = form.telefone.data
         equipment.email = form.email.data
+        equipment.link_termos = form.link_termos.data
+        
+        # Add to history if there were changes
+        if changes:
+            equipment.add_to_history(f"Equipamento atualizado: {', '.join(changes)}")
         
         db.session.commit()
         flash('Equipamento atualizado com sucesso!', 'success')

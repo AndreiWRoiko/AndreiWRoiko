@@ -9,7 +9,8 @@ class Equipment(db.Model):
     responsavel = db.Column(db.String(100), nullable=False)
     uf = db.Column(db.String(2), nullable=False)
     cc = db.Column(db.String(20), nullable=False)  # Centro de Custo
-    cnpj = db.Column(db.String(18), nullable=False)
+    cnpj = db.Column(db.Text, nullable=False)  # Mudando para Text para permitir múltiplos CNPJs
+    fornecedor = db.Column(db.String(100), nullable=True)  # Novo campo fornecedor
     modelo = db.Column(db.String(100), nullable=False)
     status = db.Column(db.String(50), nullable=False, default='Em uso')
     patrimonio = db.Column(db.String(50), unique=True, nullable=False)
@@ -36,8 +37,44 @@ class Equipment(db.Model):
     telefone = db.Column(db.String(20), nullable=True)
     email = db.Column(db.String(100), nullable=True)
     
+    # Novos campos
+    link_termos = db.Column(db.String(500), nullable=True)  # Link dos termos assinados
+    historico_modificacoes = db.Column(db.Text, nullable=True)  # Histórico de modificações
+    
     def __repr__(self):
         return f'<Equipment {self.patrimonio}: {self.modelo}>'
+    
+    def add_to_history(self, modificacao):
+        """Adiciona uma modificação ao histórico"""
+        import json
+        timestamp = datetime.utcnow().strftime('%d/%m/%Y %H:%M:%S')
+        entry = f"[{timestamp}] {modificacao}"
+        
+        if self.historico_modificacoes:
+            try:
+                historico = json.loads(self.historico_modificacoes)
+            except:
+                historico = [self.historico_modificacoes]  # Fallback for non-JSON data
+        else:
+            historico = []
+        
+        historico.append(entry)
+        # Manter apenas os últimos 20 registros
+        if len(historico) > 20:
+            historico = historico[-20:]
+        
+        self.historico_modificacoes = json.dumps(historico)
+    
+    def get_history(self):
+        """Retorna o histórico de modificações formatado"""
+        import json
+        if not self.historico_modificacoes:
+            return []
+        
+        try:
+            return json.loads(self.historico_modificacoes)
+        except:
+            return [self.historico_modificacoes]  # Fallback for non-JSON data
     
     def to_dict(self):
         return {
@@ -46,6 +83,7 @@ class Equipment(db.Model):
             'uf': self.uf,
             'cc': self.cc,
             'cnpj': self.cnpj,
+            'fornecedor': self.fornecedor,
             'modelo': self.modelo,
             'status': self.status,
             'patrimonio': self.patrimonio,
@@ -62,7 +100,9 @@ class Equipment(db.Model):
             'data_baixa': self.data_baixa.isoformat() if self.data_baixa else None,
             'endereco': self.endereco,
             'telefone': self.telefone,
-            'email': self.email
+            'email': self.email,
+            'link_termos': self.link_termos,
+            'historico_modificacoes': self.historico_modificacoes
         }
     
     @staticmethod
