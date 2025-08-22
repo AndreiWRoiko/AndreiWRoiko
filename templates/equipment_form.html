@@ -39,6 +39,9 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">
                     <i class="fas fa-history me-2"></i>Histórico
+                    {% if equipment and equipment.get_history() %}
+                        <span class="badge bg-primary ms-1">{{ equipment.get_history()|length }}</span>
+                    {% endif %}
                 </button>
             </li>
         </ul>
@@ -284,23 +287,38 @@
                         </div>
                         <div class="card-body">
                             {% if equipment and equipment.get_history() %}
+                                <div class="alert alert-success mb-3">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    <strong>{{ equipment.get_history()|length }}</strong> modificação(ões) registrada(s)
+                                </div>
                                 <div class="timeline">
                                     {% for entry in equipment.get_history()[::-1] %}
                                     <div class="timeline-item mb-3">
-                                        <div class="alert alert-info mb-0">
-                                            <i class="fas fa-edit me-2"></i>{{ entry }}
+                                        <div class="alert alert-primary mb-0">
+                                            <i class="fas fa-clock me-2"></i>{{ entry }}
                                         </div>
                                     </div>
                                     {% endfor %}
                                 </div>
                             {% else %}
                                 <div class="text-center text-muted py-4">
-                                    <i class="fas fa-history fa-3x mb-3"></i>
+                                    <i class="fas fa-history fa-3x mb-3 text-secondary"></i>
                                     {% if equipment %}
-                                        <p>Nenhuma modificação registrada ainda.</p>
+                                        <h5>Nenhuma modificação registrada ainda</h5>
+                                        <p>Este equipamento ainda não foi editado.</p>
+                                        <small class="text-muted">Modificações aparecerão aqui automaticamente.</small>
                                     {% else %}
-                                        <p>O histórico será exibido após salvar o equipamento.</p>
-                                        <small class="text-muted">Todas as modificações futuras serão registradas aqui com data e hora.</small>
+                                        <h5>Histórico de Modificações</h5>
+                                        <p class="mb-2">O histórico será criado após salvar o equipamento.</p>
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            <strong>Funcionalidades:</strong>
+                                            <ul class="mb-0 mt-2">
+                                                <li>Registro automático de todas as alterações</li>
+                                                <li>Data e hora de cada modificação</li>
+                                                <li>Detalhes das mudanças realizadas</li>
+                                            </ul>
+                                        </div>
                                     {% endif %}
                                 </div>
                             {% endif %}

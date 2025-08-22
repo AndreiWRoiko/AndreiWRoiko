@@ -47,12 +47,15 @@ class Equipment(db.Model):
     def add_to_history(self, modificacao):
         """Adiciona uma modificação ao histórico"""
         import json
-        timestamp = datetime.utcnow().strftime('%d/%m/%Y %H:%M:%S')
+        from datetime import datetime
+        timestamp = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
         entry = f"[{timestamp}] {modificacao}"
         
         if self.historico_modificacoes:
             try:
                 historico = json.loads(self.historico_modificacoes)
+                if not isinstance(historico, list):
+                    historico = [str(historico)]
             except:
                 historico = [self.historico_modificacoes]  # Fallback for non-JSON data
         else:
@@ -63,7 +66,7 @@ class Equipment(db.Model):
         if len(historico) > 20:
             historico = historico[-20:]
         
-        self.historico_modificacoes = json.dumps(historico)
+        self.historico_modificacoes = json.dumps(historico, ensure_ascii=False)
     
     def get_history(self):
         """Retorna o histórico de modificações formatado"""
@@ -72,9 +75,13 @@ class Equipment(db.Model):
             return []
         
         try:
-            return json.loads(self.historico_modificacoes)
+            historico = json.loads(self.historico_modificacoes)
+            if isinstance(historico, list):
+                return historico
+            else:
+                return [str(historico)]
         except:
-            return [self.historico_modificacoes]  # Fallback for non-JSON data
+            return [str(self.historico_modificacoes)]  # Fallback for non-JSON data
     
     def to_dict(self):
         return {
