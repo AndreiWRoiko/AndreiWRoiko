@@ -17,31 +17,43 @@ class EquipmentForm(FlaskForm):
     # Centro de Custo com opções fixas
     cc = SelectField('Centro de Custo', choices=[
         ('', 'Selecione um centro de custo...'),
-        ('TI001', 'TI001 - Tecnologia da Informação'),
-        ('ADM001', 'ADM001 - Administrativo'),
-        ('FIN001', 'FIN001 - Financeiro'),
-        ('RH001', 'RH001 - Recursos Humanos'),
-        ('COM001', 'COM001 - Comercial')
+        ('830000', '830000 - VALLOUREC JECEABA - 1'),
+        ('420101', '420101 -  OPUS - PR - PIC'),
+        ('620021', '620021 -  TELOS CONSULTORIA -PR- MERCADO LIVRE LONDRINA TEMPORARIOS'),
+        ('98', '98 - ACELERA IT'),
+        ('980001', '980001 - ACELERA IT - ADMINISTRATIVO'),
+        ('980003', '980003 - ACELERA IT - AGITA AI'),
+        ('980002', '980002 - ACELERA IT - COMERCIAL'),
+        ('300001', '300001 - ADMINISTRACAO COMERCIAL'),
+        ('20', '20 - ADMINISTRATIVO'),
+        ('500000', '500000 - ADMINISTRATIVO ENGENHARIA'),
+        ('89', '89 - ATENAS'),
+        ('890012', '890012 - ATENAS -  SUP FED AGRICULTURA ESTADO RS'),
+        ('890001', '890001 - ATENAS - ADMINISTRATIVO'),
+        ('98', '98 - ACELERA IT')
     ], validators=[DataRequired()])
     
     # CNPJ com opções fixas
     cnpj = SelectField('CNPJ', choices=[
         ('', 'Selecione um CNPJ...'),
-        ('12.345.678/0001-90', '12.345.678/0001-90 - Matriz'),
-        ('12.345.678/0002-71', '12.345.678/0002-71 - Filial São Paulo'),
-        ('12.345.678/0003-52', '12.345.678/0003-52 - Filial Rio de Janeiro'),
-        ('98.765.432/0001-10', '98.765.432/0001-10 - Filial Brasília'),
-        ('87.654.321/0001-20', '87.654.321/0001-20 - Filial Belo Horizonte')
+        ('24.329.959/0001-33', '24.329.959/0001-33 ATENAS SERVIÇO DE APOIO LTDA - CNPJ'),
+        ('15.541.957/0001-12', '15.541.957/0001-12 TELOS CONSULTORIA EMPRESARIAL LTDA - CNPJ'),
+        ('14.706.283/0001-04', '14.706.283/0001-04 - OPUS CONSULTORIA LTDA - CNPJ'),
+        ('14.706.283/0002-87', '14.706.283/0002-87 - OPUS CONSULTORIA LTDA - CNPJ'),
+        ('49.996.326/0001-00', '49.996.326/0001-00 - OPUS MANUTENCAO LTDA - CNPJ'),
+        ('50.016.866/0001-69', '50.016.866/0001-69 - OPUS LOGISTICA LTDA - CNPJ'),
+        ('42.537.087/0002-61', ' 42.537.087/0002-61 - OPUS SERVICOS ESPECIALIZADOS LTDA - CNPJ'),
+        ('42.537.087/0001-80', '42.537.087/0001-80 - OPUS SERVIÇOS ESPECIALIZADOS LTDA - CNPJ')
     ], validators=[DataRequired()])
     
     # Campo fornecedor com opções fixas
     fornecedor = SelectField('Fornecedor', choices=[
         ('', 'Selecione um fornecedor...'),
-        ('Fornecedor A', 'Fornecedor A'),
-        ('Fornecedor B', 'Fornecedor B'), 
-        ('Fornecedor C', 'Fornecedor C'),
-        ('Fornecedor D', 'Fornecedor D'),
-        ('Fornecedor E', 'Fornecedor E')
+        ('MAGNA', 'MAGNA'),
+        ('OPUS', 'OPUS'), 
+        ('STELANISS', 'STELANISS'),
+        ('ALLU', 'ALLU'),
+        ('ONLY', 'ONLY')
     ], validators=[Optional()])
     
     modelo = StringField('Modelo', validators=[DataRequired()])
@@ -50,13 +62,24 @@ class EquipmentForm(FlaskForm):
         ('Disponível', 'Disponível'),
         ('Manutenção', 'Manutenção'),
         ('Baixado', 'Baixado'),
+        ('Roubado', 'Roubado'),
         ('Emprestado', 'Emprestado')
     ], validators=[DataRequired()])
     patrimonio = StringField('Patrimônio', validators=[DataRequired()])
     valor = FloatField('Valor', validators=[DataRequired(), NumberRange(min=0)])
     
     # Additional fields
-    marca = StringField('Marca', validators=[Optional()])
+    marca = SelectField('Segmento', choices=[
+        ('Acelera', 'Acelera'),
+        ('Adm', 'Adm'),
+        ('Atenas', 'Atenas'),
+        ('Engenharia', 'Engenharia'),
+        ('Facilities', 'Facilities'),
+        ('Industrial', 'Industrial'),
+        ('Mobilidade', 'Mobilidade'),
+        ('Telos', 'Telos')
+    ],validators=[Optional()])
+    
     processador = StringField('Processador', validators=[Optional()])
     memoria_ram = StringField('Memória RAM', validators=[Optional()])
     hd_ssd = StringField('HD/SSD', validators=[Optional()])
@@ -100,21 +123,46 @@ class SearchForm(FlaskForm):
         ('Disponível', 'Disponível'),
         ('Manutenção', 'Manutenção'),
         ('Baixado', 'Baixado'),
+        ('Roubado', 'Roubado'),
         ('Emprestado', 'Emprestado')
     ])
     cnpj = SelectField('CNPJ', choices=[('', 'Todos')] + [
-        ('12.345.678/0001-90', '12.345.678/0001-90 - Matriz'),
-        ('12.345.678/0002-71', '12.345.678/0002-71 - Filial São Paulo'),
-        ('12.345.678/0003-52', '12.345.678/0003-52 - Filial Rio de Janeiro'),
-        ('98.765.432/0001-10', '98.765.432/0001-10 - Filial Brasília'),
-        ('87.654.321/0001-20', '87.654.321/0001-20 - Filial Belo Horizonte')
+        ('24.329.959/0001-33', '24.329.959/0001-33 ATENAS SERVIÇO DE APOIO LTDA - CNPJ'),
+        ('15.541.957/0001-12', '15.541.957/0001-12 TELOS CONSULTORIA EMPRESARIAL LTDA - CNPJ'),
+        ('14.706.283/0001-04', '14.706.283/0001-04 - OPUS CONSULTORIA LTDA - CNPJ'),
+        ('14.706.283/0002-87', '14.706.283/0002-87 - OPUS CONSULTORIA LTDA - CNPJ'),
+        ('49.996.326/0001-00', '49.996.326/0001-00 - OPUS MANUTENCAO LTDA - CNPJ'),
+        ('50.016.866/0001-69', '50.016.866/0001-69 - OPUS LOGISTICA LTDA - CNPJ'),
+        ('42.537.087/0002-61', ' 42.537.087/0002-61 - OPUS SERVICOS ESPECIALIZADOS LTDA - CNPJ'),
+        ('42.537.087/0001-80', '42.537.087/0001-80 - OPUS SERVIÇOS ESPECIALIZADOS LTDA - CNPJ')
     ])
+
+    marca = SelectField('Segmento', choices=[('','Todos')] + [
+        ('Acelera', 'Acelera'),
+        ('Adm', 'Adm'),
+        ('Atenas', 'Atenas'),
+        ('Engenharia', 'Engenharia'),
+        ('Facilities', 'Facilities'),
+        ('Industrial', 'Industrial'),
+        ('Mobilidade', 'Mobilidade'),
+        ('Telos', 'Telos')
+    ])
+
     cc = SelectField('Centro de Custo', choices=[('', 'Todos')] + [
-        ('TI001', 'TI001 - Tecnologia da Informação'),
-        ('ADM001', 'ADM001 - Administrativo'),
-        ('FIN001', 'FIN001 - Financeiro'),
-        ('RH001', 'RH001 - Recursos Humanos'),
-        ('COM001', 'COM001 - Comercial')
+        ('830000', '830000 - VALLOUREC JECEABA - 1'),
+        ('420101', '420101 -  OPUS - PR - PIC'),
+        ('620021', '620021 -  TELOS CONSULTORIA -PR- MERCADO LIVRE LONDRINA TEMPORARIOS'),
+        ('98', '98 - ACELERA IT'),
+        ('980001', '980001 - ACELERA IT - ADMINISTRATIVO'),
+        ('980003', '980003 - ACELERA IT - AGITA AI'),
+        ('980002', '980002 - ACELERA IT - COMERCIAL'),
+        ('300001', '300001 - ADMINISTRACAO COMERCIAL'),
+        ('20', '20 - ADMINISTRATIVO'),
+        ('500000', '500000 - ADMINISTRATIVO ENGENHARIA'),
+        ('89', '89 - ATENAS'),
+        ('890012', '890012 - ATENAS -  SUP FED AGRICULTURA ESTADO RS'),
+        ('890001', '890001 - ATENAS - ADMINISTRATIVO'),
+        ('98', '98 - ACELERA IT')
     ])
 
 class ImportForm(FlaskForm):

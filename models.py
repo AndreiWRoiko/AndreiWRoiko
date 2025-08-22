@@ -95,7 +95,7 @@ class Equipment(db.Model):
             'status': self.status,
             'patrimonio': self.patrimonio,
             'valor': self.valor,
-            'marca': self.marca,
+            'Segmento': self.marca,
             'processador': self.processador,
             'memoria_ram': self.memoria_ram,
             'hd_ssd': self.hd_ssd,
