@@ -14,11 +14,25 @@ class EquipmentForm(FlaskForm):
         ('RS', 'RS'), ('RO', 'RO'), ('RR', 'RR'), ('SC', 'SC'), ('SP', 'SP'),
         ('SE', 'SE'), ('TO', 'TO')
     ], validators=[DataRequired()])
-    cc = StringField('Centro de Custo', validators=[DataRequired()])
+    # Centro de Custo com opções fixas
+    cc = SelectField('Centro de Custo', choices=[
+        ('', 'Selecione um centro de custo...'),
+        ('TI001', 'TI001 - Tecnologia da Informação'),
+        ('ADM001', 'ADM001 - Administrativo'),
+        ('FIN001', 'FIN001 - Financeiro'),
+        ('RH001', 'RH001 - Recursos Humanos'),
+        ('COM001', 'COM001 - Comercial')
+    ], validators=[DataRequired()])
     
-    # Campo para múltiplos CNPJs
-    cnpj = TextAreaField('CNPJs (um por linha)', validators=[DataRequired()], 
-                        render_kw={'rows': 3, 'placeholder': 'Digite um CNPJ por linha\nEx: 12.345.678/0001-90\n98.765.432/0001-10'})
+    # CNPJ com opções fixas
+    cnpj = SelectField('CNPJ', choices=[
+        ('', 'Selecione um CNPJ...'),
+        ('12.345.678/0001-90', '12.345.678/0001-90 - Matriz'),
+        ('12.345.678/0002-71', '12.345.678/0002-71 - Filial São Paulo'),
+        ('12.345.678/0003-52', '12.345.678/0003-52 - Filial Rio de Janeiro'),
+        ('98.765.432/0001-10', '98.765.432/0001-10 - Filial Brasília'),
+        ('87.654.321/0001-20', '87.654.321/0001-20 - Filial Belo Horizonte')
+    ], validators=[DataRequired()])
     
     # Campo fornecedor com opções fixas
     fornecedor = SelectField('Fornecedor', choices=[
@@ -88,8 +102,20 @@ class SearchForm(FlaskForm):
         ('Baixado', 'Baixado'),
         ('Emprestado', 'Emprestado')
     ])
-    cnpj = StringField('CNPJ')
-    cc = StringField('Centro de Custo')
+    cnpj = SelectField('CNPJ', choices=[('', 'Todos')] + [
+        ('12.345.678/0001-90', '12.345.678/0001-90 - Matriz'),
+        ('12.345.678/0002-71', '12.345.678/0002-71 - Filial São Paulo'),
+        ('12.345.678/0003-52', '12.345.678/0003-52 - Filial Rio de Janeiro'),
+        ('98.765.432/0001-10', '98.765.432/0001-10 - Filial Brasília'),
+        ('87.654.321/0001-20', '87.654.321/0001-20 - Filial Belo Horizonte')
+    ])
+    cc = SelectField('Centro de Custo', choices=[('', 'Todos')] + [
+        ('TI001', 'TI001 - Tecnologia da Informação'),
+        ('ADM001', 'ADM001 - Administrativo'),
+        ('FIN001', 'FIN001 - Financeiro'),
+        ('RH001', 'RH001 - Recursos Humanos'),
+        ('COM001', 'COM001 - Comercial')
+    ])
 
 class ImportForm(FlaskForm):
     file = FileField('Arquivo Excel', validators=[

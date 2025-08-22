@@ -36,13 +36,11 @@
                     <i class="fas fa-address-card me-2"></i>Contato
                 </button>
             </li>
-            {% if equipment %}
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">
                     <i class="fas fa-history me-2"></i>Histórico
                 </button>
             </li>
-            {% endif %}
         </ul>
 
         <form method="POST" novalidate>
@@ -81,7 +79,7 @@
                                 </div>
                                 <div class="col-md-3 mb-3">
                                     {{ form.cc.label(class="form-label") }}
-                                    {{ form.cc(class="form-control" + (" is-invalid" if form.cc.errors else "")) }}
+                                    {{ form.cc(class="form-select" + (" is-invalid" if form.cc.errors else "")) }}
                                     {% if form.cc.errors %}
                                         <div class="invalid-feedback">
                                             {% for error in form.cc.errors %}{{ error }}{% endfor %}
@@ -93,13 +91,12 @@
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     {{ form.cnpj.label(class="form-label") }}
-                                    {{ form.cnpj(class="form-control" + (" is-invalid" if form.cnpj.errors else "")) }}
+                                    {{ form.cnpj(class="form-select" + (" is-invalid" if form.cnpj.errors else "")) }}
                                     {% if form.cnpj.errors %}
                                         <div class="invalid-feedback">
                                             {% for error in form.cnpj.errors %}{{ error }}{% endfor %}
                                         </div>
                                     {% endif %}
-                                    <div class="form-text">Digite um CNPJ por linha</div>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     {{ form.fornecedor.label(class="form-label") }}
@@ -277,7 +274,6 @@
                 </div>
                 
                 <!-- History Tab -->
-                {% if equipment %}
                 <div class="tab-pane fade" id="history" role="tabpanel">
                     <div class="card mb-4">
                         <div class="card-header">
@@ -287,7 +283,7 @@
                             </h5>
                         </div>
                         <div class="card-body">
-                            {% if equipment.get_history() %}
+                            {% if equipment and equipment.get_history() %}
                                 <div class="timeline">
                                     {% for entry in equipment.get_history()[::-1] %}
                                     <div class="timeline-item mb-3">
@@ -300,13 +296,17 @@
                             {% else %}
                                 <div class="text-center text-muted py-4">
                                     <i class="fas fa-history fa-3x mb-3"></i>
-                                    <p>Nenhuma modificação registrada ainda.</p>
+                                    {% if equipment %}
+                                        <p>Nenhuma modificação registrada ainda.</p>
+                                    {% else %}
+                                        <p>O histórico será exibido após salvar o equipamento.</p>
+                                        <small class="text-muted">Todas as modificações futuras serão registradas aqui com data e hora.</small>
+                                    {% endif %}
                                 </div>
                             {% endif %}
                         </div>
                     </div>
                 </div>
-                {% endif %}
             </div>
             
             <!-- Form Actions -->
