@@ -293,6 +293,22 @@ def download_template():
     
     return export_to_excel(sample_data)
 
+@app.route('/history')
+def history_log():
+    """Display all equipment modification history"""
+    # Get all equipment that have history
+    equipment_list = Equipment.query.all()
+    
+    # Filter only equipment with history
+    equipment_with_history = [eq for eq in equipment_list if eq.get_history()]
+    
+    # Count total history entries
+    total_entries = sum(len(eq.get_history()) for eq in equipment_with_history)
+    
+    return render_template('history_log.html', 
+                         equipment_list=equipment_with_history,
+                         total_entries=total_entries)
+
 @app.errorhandler(404)
 def not_found_error(error):
     return render_template('404.html'), 404

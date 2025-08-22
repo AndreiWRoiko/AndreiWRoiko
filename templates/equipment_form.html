@@ -348,15 +348,40 @@
 {% block scripts %}
 <script>
     // Format phone field
-    document.getElementById('telefone').addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, '');
-        if (value.length <= 11) {
-            if (value.length > 6) {
-                value = value.replace(/^(\d{2})(\d{4,5})(\d{4})$/, '($1) $2-$3');
-            } else if (value.length > 2) {
-                value = value.replace(/^(\d{2})(\d)/, '($1) $2');
+    const telefoneField = document.getElementById('telefone');
+    if (telefoneField) {
+        telefoneField.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 11) {
+                if (value.length > 6) {
+                    value = value.replace(/^(\d{2})(\d{4,5})(\d{4})$/, '($1) $2-$3');
+                } else if (value.length > 2) {
+                    value = value.replace(/^(\d{2})(\d)/, '($1) $2');
+                }
+                e.target.value = value;
             }
-            e.target.value = value;
+        });
+    }
+
+    // Ensure Bootstrap tabs work properly
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize all tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Make sure history tab is clickable and shows content
+        const historyTab = document.getElementById('history-tab');
+        const historyPane = document.getElementById('history');
+        
+        if (historyTab && historyPane) {
+            historyTab.addEventListener('click', function(e) {
+                e.preventDefault();
+                // Manually activate the history tab
+                const tabInstance = new bootstrap.Tab(historyTab);
+                tabInstance.show();
+            });
         }
     });
 </script>

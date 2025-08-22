@@ -54,6 +54,12 @@
                             <i class="fas fa-file-import me-1"></i>Importar Dados
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'history_log' %}active{% endif %}" 
+                           href="{{ url_for('history_log') }}">
+                            <i class="fas fa-history me-1"></i>Histórico
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
