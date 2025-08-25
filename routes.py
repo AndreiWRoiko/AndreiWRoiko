@@ -300,24 +300,22 @@ def download_template():
 
 @app.route('/history')
 def history_log():
-    """Display all equipment modification history"""
+    """Display user selection for history by profile"""
     # Get all equipment that have history
-    equipment_list = Equipment.query.all()
-    
-    # Filter only equipment with history
-    equipment_with_history = [eq for eq in equipment_list if eq.get_history()]
-    
-    # Count total history entries
-    total_entries = sum(len(eq.get_history()) for eq in equipment_with_history)
+    all_equipment = Equipment.query.all()
+    equipment_with_history = [eq for eq in all_equipment if eq.get_history()]
     
     # Get unique profiles (responsáveis)
     profiles = list(set([eq.responsavel for eq in equipment_with_history]))
     profiles.sort()
     
+    # If only one profile, redirect directly to it
+    if len(profiles) == 1:
+        return redirect(url_for('history_by_profile', profile_name=profiles[0]))
+    
     return render_template('history_log.html', 
-                         equipment_list=equipment_with_history,
-                         total_entries=total_entries,
-                         profiles=profiles)
+                         profiles=profiles,
+                         show_profile_selection=True)
 
 @app.route('/history/profile/<profile_name>')
 def history_by_profile(profile_name):

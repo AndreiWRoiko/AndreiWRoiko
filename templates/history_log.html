@@ -1,63 +1,104 @@
 {% extends "base.html" %}
 
-{% block title %}Histórico de Modificações - Sistema de Inventário{% endblock %}
+{% block title %}Histórico por Usuário - Sistema de Inventário{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1>
-                <i class="fas fa-history me-2"></i>
-                Histórico de Modificações
+                <i class="fas fa-user-clock me-2"></i>
+                {% if current_profile %}Histórico de {{ current_profile }}{% else %}Histórico por Usuário{% endif %}
             </h1>
             <div>
-                <span class="badge bg-primary fs-6">{{ total_entries }} registro(s)</span>
+                {% if total_entries %}
+                    <span class="badge bg-primary fs-6">{{ total_entries }} registro(s)</span>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
 
-<!-- Navigation Tabs -->
+{% if show_profile_selection %}
+<!-- User Selection -->
 <div class="row">
     <div class="col-12">
-        <ul class="nav nav-tabs mb-4" id="historyTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <a class="nav-link {% if not current_profile %}active{% endif %}" 
-                   href="{{ url_for('history_log') }}" 
-                   role="tab">
-                    <i class="fas fa-globe me-2"></i>Histórico Geral
-                </a>
-            </li>
-            {% if profiles %}
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle {% if current_profile %}active{% endif %}" 
-                   data-bs-toggle="dropdown" 
-                   href="#" 
-                   role="button" 
-                   aria-expanded="false">
-                    <i class="fas fa-user me-2"></i>
-                    {% if current_profile %}{{ current_profile }}{% else %}Histórico por Perfil{% endif %}
-                </a>
-                <ul class="dropdown-menu">
-                    {% for profile in profiles %}
-                    <li><a class="dropdown-item" href="{{ url_for('history_by_profile', profile_name=profile) }}">
-                        <i class="fas fa-user me-2"></i>{{ profile }}
-                    </a></li>
-                    {% endfor %}
-                </ul>
-            </li>
-            {% endif %}
-        </ul>
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-users me-2"></i>
+                    Selecione um usuário para ver o histórico
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if profiles %}
+                    <div class="row">
+                        {% for profile in profiles %}
+                        <div class="col-md-4 col-lg-3 mb-3">
+                            <a href="{{ url_for('history_by_profile', profile_name=profile) }}" 
+                               class="card text-decoration-none h-100">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-user fa-2x text-primary mb-3"></i>
+                                    <h6 class="card-title">{{ profile }}</h6>
+                                    <small class="text-muted">
+                                        {% set user_equipment = [] %}
+                                        {% for eq in equipment if eq.responsavel == profile and eq.get_history() %}
+                                            {% if user_equipment.append(eq) %}{% endif %}
+                                        {% endfor %}
+                                        Ver histórico
+                                    </small>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-user-times fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Nenhum usuário com histórico encontrado</h5>
+                        <p class="text-muted">Ainda não há usuários com modificações registradas no sistema.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
 </div>
+{% else %}
+<!-- Navigation Back -->
+{% if profiles %}
+<div class="row">
+    <div class="col-12">
+        <nav class="mb-4">
+            <div class="d-flex align-items-center">
+                <a href="{{ url_for('history_log') }}" class="btn btn-outline-secondary me-3">
+                    <i class="fas fa-arrow-left me-1"></i>Voltar
+                </a>
+                <div class="dropdown">
+                    <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user me-2"></i>{{ current_profile }}
+                    </button>
+                    <ul class="dropdown-menu">
+                        {% for profile in profiles %}
+                        <li><a class="dropdown-item {% if profile == current_profile %}active{% endif %}" 
+                               href="{{ url_for('history_by_profile', profile_name=profile) }}">
+                            <i class="fas fa-user me-2"></i>{{ profile }}
+                        </a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </div>
+</div>
+{% endif %}
 
 <div class="row">
     <div class="col-12">
         {% if equipment_list %}
             <div class="alert alert-info mb-4">
                 <i class="fas fa-info-circle me-2"></i>
-                <strong>{% if current_profile %}Histórico de {{ current_profile }}{% else %}Histórico completo de modificações{% endif %}</strong> 
-                - {% if current_profile %}Visualize as alterações realizadas nos equipamentos de {{ current_profile }}.{% else %}Visualize todas as alterações realizadas nos equipamentos cadastrados.{% endif %}
+                <strong>Histórico de {{ current_profile }}</strong> 
+                - Visualize as alterações realizadas nos equipamentos de {{ current_profile }}.
             </div>
 
             {% for equipment in equipment_list %}
@@ -110,15 +151,15 @@
         {% else %}
             <div class="text-center py-5">
                 <div class="mb-4">
-                    <i class="fas fa-history fa-5x text-muted"></i>
+                    <i class="fas fa-user-times fa-5x text-muted"></i>
                 </div>
-                <h3 class="text-muted">Nenhum histórico encontrado</h3>
+                <h3 class="text-muted">Nenhum histórico encontrado para {{ current_profile }}</h3>
                 <p class="lead text-muted">
-                    Ainda não há equipamentos com modificações registradas no sistema.
+                    Este usuário ainda não possui modificações registradas no sistema.
                 </p>
                 <div class="mt-4">
-                    <a href="{{ url_for('equipment_new') }}" class="btn btn-primary me-2">
-                        <i class="fas fa-plus me-2"></i>Cadastrar Equipamento
+                    <a href="{{ url_for('history_log') }}" class="btn btn-primary me-2">
+                        <i class="fas fa-arrow-left me-2"></i>Voltar
                     </a>
                     <a href="{{ url_for('equipment_list') }}" class="btn btn-outline-secondary">
                         <i class="fas fa-list me-2"></i>Ver Equipamentos
@@ -126,6 +167,9 @@
                 </div>
             </div>
         {% endif %}
+    </div>
+</div>
+{% endif %}
     </div>
 </div>
 
