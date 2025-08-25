@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired, FileAllowed
-from wtforms import StringField, FloatField, SelectField, BooleanField, DateField, TextAreaField, FieldList, FormField, HiddenField
+from wtforms import StringField, FloatField, SelectField, BooleanField, DateField, TextAreaField, FieldList, FormField, HiddenField, PasswordField
 from wtforms.validators import DataRequired, Email, Optional, NumberRange, URL
 from datetime import date
 
@@ -106,6 +106,10 @@ class EquipmentForm(FlaskForm):
     # Novo campo para link dos termos
     link_termos = StringField('Link dos Termos Assinados', validators=[Optional(), URL()], 
                              render_kw={'placeholder': 'https://exemplo.com/termo-assinado'})
+    
+    # Campo senha
+    senha = StringField('Senha', validators=[Optional()], 
+                       render_kw={'placeholder': 'Digite a senha'})
 
 class SearchForm(FlaskForm):
     search_term = StringField('Buscar')

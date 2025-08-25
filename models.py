@@ -40,6 +40,7 @@ class Equipment(db.Model):
     # Novos campos
     link_termos = db.Column(db.String(500), nullable=True)  # Link dos termos assinados
     historico_modificacoes = db.Column(db.Text, nullable=True)  # Histórico de modificações
+    senha = db.Column(db.String(255), nullable=True)  # Campo senha
     
     def __repr__(self):
         return f'<Equipment {self.patrimonio}: {self.modelo}>'
@@ -109,6 +110,7 @@ class Equipment(db.Model):
             'telefone': self.telefone,
             'email': self.email,
             'link_termos': self.link_termos,
+            'senha': self.senha,
             'historico_modificacoes': self.historico_modificacoes
         }
     

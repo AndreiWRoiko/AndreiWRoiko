@@ -108,6 +108,7 @@ def equipment_new():
         equipment.telefone = form.telefone.data
         equipment.email = form.email.data
         equipment.link_termos = form.link_termos.data
+        equipment.senha = form.senha.data
         
         # Adicionar histórico de criação
         equipment.add_to_history(f"Equipamento criado por {form.responsavel.data}")
@@ -193,6 +194,8 @@ def equipment_edit(id):
             changes.append(f"Email: {equipment.email or 'N/A'} → {form.email.data or 'N/A'}")
         if equipment.link_termos != form.link_termos.data:
             changes.append(f"Link Termos: {equipment.link_termos or 'N/A'} → {form.link_termos.data or 'N/A'}")
+        if equipment.senha != form.senha.data:
+            changes.append(f"Senha: {'***' if equipment.senha else 'N/A'} → {'***' if form.senha.data else 'N/A'}")
         
         # Update equipment fields
         equipment.responsavel = form.responsavel.data
@@ -218,6 +221,7 @@ def equipment_edit(id):
         equipment.telefone = form.telefone.data
         equipment.email = form.email.data
         equipment.link_termos = form.link_termos.data
+        equipment.senha = form.senha.data
         
         # Add to history if there were changes
         if changes:
