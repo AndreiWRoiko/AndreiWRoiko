@@ -187,6 +187,11 @@ def equipment_edit(id):
 def equipment_delete(id):
     """Delete equipment"""
     equipment = Equipment.query.get_or_404(id)
+    
+    # Add to history before deleting
+    equipment.add_to_history(f"Equipamento removido do sistema (Patrimônio: {equipment.patrimonio})")
+    db.session.commit()  # Commit history before deletion
+    
     db.session.delete(equipment)
     db.session.commit()
     flash('Equipamento removido com sucesso!', 'success')
@@ -305,9 +310,38 @@ def history_log():
     # Count total history entries
     total_entries = sum(len(eq.get_history()) for eq in equipment_with_history)
     
+    # Get unique profiles (responsáveis)
+    profiles = list(set([eq.responsavel for eq in equipment_with_history]))
+    profiles.sort()
+    
     return render_template('history_log.html', 
                          equipment_list=equipment_with_history,
-                         total_entries=total_entries)
+                         total_entries=total_entries,
+                         profiles=profiles)
+
+@app.route('/history/profile/<profile_name>')
+def history_by_profile(profile_name):
+    """Display equipment modification history filtered by profile/responsável"""
+    # Get all equipment for this profile that have history
+    equipment_list = Equipment.query.filter_by(responsavel=profile_name).all()
+    
+    # Filter only equipment with history
+    equipment_with_history = [eq for eq in equipment_list if eq.get_history()]
+    
+    # Count total history entries for this profile
+    total_entries = sum(len(eq.get_history()) for eq in equipment_with_history)
+    
+    # Get unique profiles for navigation
+    all_equipment = Equipment.query.all()
+    equipment_with_any_history = [eq for eq in all_equipment if eq.get_history()]
+    profiles = list(set([eq.responsavel for eq in equipment_with_any_history]))
+    profiles.sort()
+    
+    return render_template('history_log.html', 
+                         equipment_list=equipment_with_history,
+                         total_entries=total_entries,
+                         profiles=profiles,
+                         current_profile=profile_name)
 
 @app.errorhandler(404)
 def not_found_error(error):

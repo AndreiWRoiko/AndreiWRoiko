@@ -17,12 +17,47 @@
     </div>
 </div>
 
+<!-- Navigation Tabs -->
+<div class="row">
+    <div class="col-12">
+        <ul class="nav nav-tabs mb-4" id="historyTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <a class="nav-link {% if not current_profile %}active{% endif %}" 
+                   href="{{ url_for('history_log') }}" 
+                   role="tab">
+                    <i class="fas fa-globe me-2"></i>Histórico Geral
+                </a>
+            </li>
+            {% if profiles %}
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle {% if current_profile %}active{% endif %}" 
+                   data-bs-toggle="dropdown" 
+                   href="#" 
+                   role="button" 
+                   aria-expanded="false">
+                    <i class="fas fa-user me-2"></i>
+                    {% if current_profile %}{{ current_profile }}{% else %}Histórico por Perfil{% endif %}
+                </a>
+                <ul class="dropdown-menu">
+                    {% for profile in profiles %}
+                    <li><a class="dropdown-item" href="{{ url_for('history_by_profile', profile_name=profile) }}">
+                        <i class="fas fa-user me-2"></i>{{ profile }}
+                    </a></li>
+                    {% endfor %}
+                </ul>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+
 <div class="row">
     <div class="col-12">
         {% if equipment_list %}
             <div class="alert alert-info mb-4">
                 <i class="fas fa-info-circle me-2"></i>
-                <strong>Histórico completo de modificações</strong> - Visualize todas as alterações realizadas nos equipamentos cadastrados.
+                <strong>{% if current_profile %}Histórico de {{ current_profile }}{% else %}Histórico completo de modificações{% endif %}</strong> 
+                - {% if current_profile %}Visualize as alterações realizadas nos equipamentos de {{ current_profile }}.{% else %}Visualize todas as alterações realizadas nos equipamentos cadastrados.{% endif %}
             </div>
 
             {% for equipment in equipment_list %}
