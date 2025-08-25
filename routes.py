@@ -11,9 +11,11 @@ from werkzeug.utils import secure_filename
 def dashboard():
     """Main dashboard route"""
     stats = Equipment.get_dashboard_stats()
-    uf_data = Equipment.get_by_uf()
-    fornecedor_data = Equipment.get_by_fornecedor()
-    status_data = Equipment.get_by_status()
+    
+    # Convert SQLAlchemy Row objects to simple lists
+    uf_data = [[item[0], item[1]] for item in Equipment.get_by_uf()]
+    fornecedor_data = [[item[0], item[1]] for item in Equipment.get_by_fornecedor()]
+    status_data = [[item[0], item[1]] for item in Equipment.get_by_status()]
     top_responsaveis = Equipment.get_top_responsaveis()
     
     return render_template('dashboard.html', 
