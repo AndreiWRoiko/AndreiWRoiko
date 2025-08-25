@@ -5,3 +5,4 @@
 [x] 5. Implement history by profile functionality with navigation tabs
 [x] 6. Remove general history and keep only user-specific history
 [x] 7. Inform user the import is completed and they can start building, mark the import as completed using the complete_project_import tool
+[x] 8. Fix comprehensive history tracking - now tracks all equipment field changes

@@ -141,14 +141,58 @@ def equipment_edit(id):
             flash('Patrimônio já existe no sistema!', 'error')
             return render_template('equipment_form.html', form=form, title='Editar Equipamento')
         
-        # Track changes for history
+        # Track changes for history - comprehensive tracking
         changes = []
         if equipment.responsavel != form.responsavel.data:
             changes.append(f"Responsável: {equipment.responsavel} → {form.responsavel.data}")
+        if equipment.uf != form.uf.data:
+            changes.append(f"UF: {equipment.uf} → {form.uf.data}")
+        if equipment.cc != form.cc.data:
+            changes.append(f"Centro de Custo: {equipment.cc} → {form.cc.data}")
+        if equipment.cnpj != form.cnpj.data:
+            changes.append(f"CNPJ: {equipment.cnpj} → {form.cnpj.data}")
+        if equipment.fornecedor != form.fornecedor.data:
+            changes.append(f"Fornecedor: {equipment.fornecedor or 'N/A'} → {form.fornecedor.data or 'N/A'}")
+        if equipment.modelo != form.modelo.data:
+            changes.append(f"Modelo: {equipment.modelo} → {form.modelo.data}")
         if equipment.status != form.status.data:
             changes.append(f"Status: {equipment.status} → {form.status.data}")
+        if equipment.patrimonio != form.patrimonio.data:
+            changes.append(f"Patrimônio: {equipment.patrimonio} → {form.patrimonio.data}")
         if equipment.valor != form.valor.data:
             changes.append(f"Valor: R$ {equipment.valor} → R$ {form.valor.data}")
+        if equipment.marca != form.marca.data:
+            changes.append(f"Marca: {equipment.marca or 'N/A'} → {form.marca.data or 'N/A'}")
+        if equipment.processador != form.processador.data:
+            changes.append(f"Processador: {equipment.processador or 'N/A'} → {form.processador.data or 'N/A'}")
+        if equipment.memoria_ram != form.memoria_ram.data:
+            changes.append(f"Memória RAM: {equipment.memoria_ram or 'N/A'} → {form.memoria_ram.data or 'N/A'}")
+        if equipment.hd_ssd != form.hd_ssd.data:
+            changes.append(f"HD/SSD: {equipment.hd_ssd or 'N/A'} → {form.hd_ssd.data or 'N/A'}")
+        if equipment.sistema_operacional != form.sistema_operacional.data:
+            changes.append(f"Sistema Operacional: {equipment.sistema_operacional or 'N/A'} → {form.sistema_operacional.data or 'N/A'}")
+        if equipment.antivirus != form.antivirus.data:
+            changes.append(f"Antivírus: {'Sim' if equipment.antivirus else 'Não'} → {'Sim' if form.antivirus.data else 'Não'}")
+        if equipment.termo_assinado != form.termo_assinado.data:
+            changes.append(f"Termo Assinado: {'Sim' if equipment.termo_assinado else 'Não'} → {'Sim' if form.termo_assinado.data else 'Não'}")
+        if equipment.milvus_funcionando != form.milvus_funcionando.data:
+            changes.append(f"Milvus Funcionando: {'Sim' if equipment.milvus_funcionando else 'Não'} → {'Sim' if form.milvus_funcionando.data else 'Não'}")
+        if equipment.data_aquisicao != form.data_aquisicao.data:
+            old_date = equipment.data_aquisicao.strftime('%d/%m/%Y') if equipment.data_aquisicao else 'N/A'
+            new_date = form.data_aquisicao.data.strftime('%d/%m/%Y') if form.data_aquisicao.data else 'N/A'
+            changes.append(f"Data Aquisição: {old_date} → {new_date}")
+        if equipment.data_baixa != form.data_baixa.data:
+            old_date = equipment.data_baixa.strftime('%d/%m/%Y') if equipment.data_baixa else 'N/A'
+            new_date = form.data_baixa.data.strftime('%d/%m/%Y') if form.data_baixa.data else 'N/A'
+            changes.append(f"Data Baixa: {old_date} → {new_date}")
+        if equipment.endereco != form.endereco.data:
+            changes.append(f"Endereço: {equipment.endereco or 'N/A'} → {form.endereco.data or 'N/A'}")
+        if equipment.telefone != form.telefone.data:
+            changes.append(f"Telefone: {equipment.telefone or 'N/A'} → {form.telefone.data or 'N/A'}")
+        if equipment.email != form.email.data:
+            changes.append(f"Email: {equipment.email or 'N/A'} → {form.email.data or 'N/A'}")
+        if equipment.link_termos != form.link_termos.data:
+            changes.append(f"Link Termos: {equipment.link_termos or 'N/A'} → {form.link_termos.data or 'N/A'}")
         
         # Update equipment fields
         equipment.responsavel = form.responsavel.data
