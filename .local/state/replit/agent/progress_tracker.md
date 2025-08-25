@@ -6,3 +6,7 @@
 [x] 6. Remove general history and keep only user-specific history
 [x] 7. Inform user the import is completed and they can start building, mark the import as completed using the complete_project_import tool
 [x] 8. Fix comprehensive history tracking - now tracks all equipment field changes
+[x] 9. Remove Brazil Map and Top 10 Responsaveis from dashboard
+[x] 10. Add Segmentos chart to dashboard showing device counts per segment/brand
+[x] 11. Add search magnifier functionality to history log
+[x] 12. Implement complete Darcula theme with dark color palette

@@ -16,14 +16,14 @@ def dashboard():
     uf_data = [[item[0], item[1]] for item in Equipment.get_by_uf()]
     fornecedor_data = [[item[0], item[1]] for item in Equipment.get_by_fornecedor()]
     status_data = [[item[0], item[1]] for item in Equipment.get_by_status()]
-    top_responsaveis = Equipment.get_top_responsaveis()
+    segmentos_data = [[item[0], item[1]] for item in Equipment.get_by_segmento()]
     
     return render_template('dashboard.html', 
                          stats=stats, 
                          uf_data=uf_data,
                          fornecedor_data=fornecedor_data,
                          status_data=status_data,
-                         top_responsaveis=top_responsaveis)
+                         segmentos_data=segmentos_data)
 
 @app.route('/equipment')
 def equipment_list():

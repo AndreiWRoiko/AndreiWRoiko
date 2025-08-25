@@ -11,8 +11,16 @@
                 {% if current_profile %}Histórico de {{ current_profile }}{% else %}Histórico por Usuário{% endif %}
             </h1>
             <div>
+                {% if current_profile %}
+                    <div class="input-group" style="width: 300px;">
+                        <input type="text" class="form-control" id="historySearch" placeholder="Buscar no histórico...">
+                        <button class="btn btn-outline-primary" type="button" id="clearSearch">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                {% endif %}
                 {% if total_entries %}
-                    <span class="badge bg-primary fs-6">{{ total_entries }} registro(s)</span>
+                    <span class="badge bg-primary fs-6 ms-2">{{ total_entries }} registro(s)</span>
                 {% endif %}
             </div>
         </div>
@@ -220,4 +228,41 @@
 </div>
 {% endif %}
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+// History search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('historySearch');
+    const clearButton = document.getElementById('clearSearch');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const historyCards = document.querySelectorAll('.card.mb-4');
+            
+            historyCards.forEach(card => {
+                const cardContent = card.textContent.toLowerCase();
+                if (cardContent.includes(searchTerm)) {
+                    card.style.display = 'block';
+                    card.style.opacity = '1';
+                } else {
+                    card.style.display = 'none';
+                    card.style.opacity = '0.5';
+                }
+            });
+        });
+        
+        clearButton.addEventListener('click', function() {
+            searchInput.value = '';
+            const historyCards = document.querySelectorAll('.card.mb-4');
+            historyCards.forEach(card => {
+                card.style.display = 'block';
+                card.style.opacity = '1';
+            });
+        });
+    }
+});
+</script>
 {% endblock %}

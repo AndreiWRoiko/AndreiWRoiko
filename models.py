@@ -162,23 +162,9 @@ class Equipment(db.Model):
         ).group_by(Equipment.status).order_by(func.count(Equipment.id).desc()).all()
     
     @staticmethod
-    def get_top_responsaveis(limit=10):
-        """Get top responsaveis with equipment count and percentage"""
-        total_count = Equipment.query.count()
-        
-        results = db.session.query(
-            Equipment.responsavel,
+    def get_by_segmento():
+        """Get equipment count by segment (marca/brand)"""
+        return db.session.query(
+            Equipment.marca,
             func.count(Equipment.id).label('count')
-        ).group_by(Equipment.responsavel).order_by(func.count(Equipment.id).desc()).limit(limit).all()
-        
-        # Add percentage calculation
-        top_responsaveis = []
-        for responsavel, count in results:
-            percentage = (count / total_count * 100) if total_count > 0 else 0
-            top_responsaveis.append({
-                'responsavel': responsavel,
-                'count': count,
-                'percentage': round(percentage, 1)
-            })
-        
-        return top_responsaveis
+        ).filter(Equipment.marca.isnot(None)).group_by(Equipment.marca).order_by(func.count(Equipment.id).desc()).all()

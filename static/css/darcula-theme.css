@@ -1,0 +1,419 @@
+/* Darcula Theme - Dark Color Palette */
+
+:root {
+  /* Darcula Core Colors */
+  --darcula-bg: #2B2B2B;
+  --darcula-surface: #3C3F41;
+  --darcula-surface-light: #4C5052;
+  --darcula-surface-dark: #232525;
+  --darcula-border: #555555;
+  --darcula-text: #BBBBBB;
+  --darcula-text-bright: #FFFFFF;
+  --darcula-accent: #6897BB;
+  --darcula-accent-hover: #87CEEB;
+  --darcula-success: #629755;
+  --darcula-warning: #CC7832;
+  --darcula-danger: #BC3F3C;
+  --darcula-info: #6897BB;
+  
+  /* Override Bootstrap Variables */
+  --bs-body-bg: var(--darcula-bg);
+  --bs-body-color: var(--darcula-text);
+  --bs-card-bg: var(--darcula-surface);
+  --bs-card-border-color: var(--darcula-border);
+  --bs-border-color: var(--darcula-border);
+  --bs-primary: var(--darcula-accent);
+  --bs-primary-rgb: 104, 151, 187;
+  --bs-success: var(--darcula-success);
+  --bs-success-rgb: 98, 151, 85;
+  --bs-warning: var(--darcula-warning);
+  --bs-warning-rgb: 204, 120, 50;
+  --bs-danger: var(--darcula-danger);
+  --bs-danger-rgb: 188, 63, 60;
+  --bs-info: var(--darcula-info);
+  --bs-info-rgb: 104, 151, 187;
+}
+
+/* Global Body Styles */
+body {
+  background-color: var(--darcula-bg) !important;
+  color: var(--darcula-text) !important;
+}
+
+/* Navigation */
+.navbar {
+  background-color: var(--darcula-surface-dark) !important;
+  border-bottom: 1px solid var(--darcula-border);
+}
+
+.navbar-brand, 
+.nav-link {
+  color: var(--darcula-text-bright) !important;
+}
+
+.nav-link:hover, 
+.nav-link.active {
+  color: var(--darcula-accent) !important;
+}
+
+/* Cards */
+.card {
+  background-color: var(--darcula-surface) !important;
+  border: 1px solid var(--darcula-border) !important;
+  color: var(--darcula-text) !important;
+}
+
+.card-header {
+  background-color: var(--darcula-surface-light) !important;
+  border-bottom: 1px solid var(--darcula-border) !important;
+  color: var(--darcula-text-bright) !important;
+}
+
+.card-title {
+  color: var(--darcula-text-bright) !important;
+}
+
+/* Dashboard Cards */
+.dashboard-card {
+  background-color: var(--darcula-surface) !important;
+  border: 1px solid var(--darcula-border) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+.metric-card {
+  background: linear-gradient(135deg, var(--darcula-accent), var(--darcula-info)) !important;
+  color: var(--darcula-text-bright) !important;
+  border: none !important;
+}
+
+.metric-card-primary { 
+  background: linear-gradient(135deg, var(--darcula-accent), #5A7FB8) !important; 
+}
+.metric-card-success { 
+  background: linear-gradient(135deg, var(--darcula-success), #7BA05B) !important; 
+}
+.metric-card-warning { 
+  background: linear-gradient(135deg, var(--darcula-warning), #D4943E) !important; 
+}
+.metric-card-danger { 
+  background: linear-gradient(135deg, var(--darcula-danger), #C85450) !important; 
+}
+
+.page-header {
+  background: linear-gradient(135deg, var(--darcula-surface-dark), var(--darcula-surface)) !important;
+  color: var(--darcula-text-bright) !important;
+  border: 1px solid var(--darcula-border) !important;
+}
+
+/* Tables */
+.table {
+  color: var(--darcula-text) !important;
+}
+
+.table th {
+  background-color: var(--darcula-surface-light) !important;
+  color: var(--darcula-text-bright) !important;
+  border-color: var(--darcula-border) !important;
+}
+
+.table td {
+  border-color: var(--darcula-border) !important;
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(104, 151, 187, 0.1) !important;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+/* Forms */
+.form-control, 
+.form-select {
+  background-color: var(--darcula-surface) !important;
+  border: 1px solid var(--darcula-border) !important;
+  color: var(--darcula-text) !important;
+}
+
+.form-control:focus, 
+.form-select:focus {
+  background-color: var(--darcula-surface) !important;
+  border-color: var(--darcula-accent) !important;
+  box-shadow: 0 0 0 0.2rem rgba(104, 151, 187, 0.25) !important;
+  color: var(--darcula-text) !important;
+}
+
+.form-control::placeholder {
+  color: #777777 !important;
+}
+
+.form-label {
+  color: var(--darcula-text-bright) !important;
+}
+
+.form-check-input {
+  background-color: var(--darcula-surface) !important;
+  border: 1px solid var(--darcula-border) !important;
+}
+
+.form-check-input:checked {
+  background-color: var(--darcula-accent) !important;
+  border-color: var(--darcula-accent) !important;
+}
+
+.form-check-label {
+  color: var(--darcula-text) !important;
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: var(--darcula-accent) !important;
+  border-color: var(--darcula-accent) !important;
+  color: var(--darcula-text-bright) !important;
+}
+
+.btn-primary:hover, .btn-primary:focus {
+  background-color: var(--darcula-accent-hover) !important;
+  border-color: var(--darcula-accent-hover) !important;
+}
+
+.btn-success {
+  background-color: var(--darcula-success) !important;
+  border-color: var(--darcula-success) !important;
+}
+
+.btn-warning {
+  background-color: var(--darcula-warning) !important;
+  border-color: var(--darcula-warning) !important;
+}
+
+.btn-danger {
+  background-color: var(--darcula-danger) !important;
+  border-color: var(--darcula-danger) !important;
+}
+
+.btn-outline-primary {
+  color: var(--darcula-accent) !important;
+  border-color: var(--darcula-accent) !important;
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--darcula-accent) !important;
+  color: var(--darcula-text-bright) !important;
+}
+
+.btn-outline-secondary {
+  color: var(--darcula-text) !important;
+  border-color: var(--darcula-border) !important;
+}
+
+.btn-outline-secondary:hover {
+  background-color: var(--darcula-surface-light) !important;
+  color: var(--darcula-text-bright) !important;
+}
+
+.btn-outline-success {
+  color: var(--darcula-success) !important;
+  border-color: var(--darcula-success) !important;
+}
+
+.btn-outline-success:hover {
+  background-color: var(--darcula-success) !important;
+  color: var(--darcula-text-bright) !important;
+}
+
+/* Alerts */
+.alert-primary {
+  background-color: rgba(104, 151, 187, 0.1) !important;
+  border-color: var(--darcula-accent) !important;
+  color: var(--darcula-accent) !important;
+}
+
+.alert-success {
+  background-color: rgba(98, 151, 85, 0.1) !important;
+  border-color: var(--darcula-success) !important;
+  color: var(--darcula-success) !important;
+}
+
+.alert-warning {
+  background-color: rgba(204, 120, 50, 0.1) !important;
+  border-color: var(--darcula-warning) !important;
+  color: var(--darcula-warning) !important;
+}
+
+.alert-danger {
+  background-color: rgba(188, 63, 60, 0.1) !important;
+  border-color: var(--darcula-danger) !important;
+  color: var(--darcula-danger) !important;
+}
+
+.alert-info {
+  background-color: rgba(104, 151, 187, 0.1) !important;
+  border-color: var(--darcula-info) !important;
+  color: var(--darcula-info) !important;
+}
+
+.alert-light {
+  background-color: var(--darcula-surface-light) !important;
+  border-color: var(--darcula-border) !important;
+  color: var(--darcula-text) !important;
+}
+
+/* Badges */
+.badge {
+  background-color: var(--darcula-accent) !important;
+  color: var(--darcula-text-bright) !important;
+}
+
+.badge.bg-success {
+  background-color: var(--darcula-success) !important;
+}
+
+.badge.bg-warning {
+  background-color: var(--darcula-warning) !important;
+}
+
+.badge.bg-danger {
+  background-color: var(--darcula-danger) !important;
+}
+
+.badge.bg-light {
+  background-color: var(--darcula-surface-light) !important;
+  color: var(--darcula-text) !important;
+}
+
+/* Pagination */
+.page-link {
+  background-color: var(--darcula-surface) !important;
+  border-color: var(--darcula-border) !important;
+  color: var(--darcula-accent) !important;
+}
+
+.page-link:hover {
+  background-color: var(--darcula-surface-light) !important;
+  border-color: var(--darcula-accent) !important;
+  color: var(--darcula-accent-hover) !important;
+}
+
+.page-item.active .page-link {
+  background-color: var(--darcula-accent) !important;
+  border-color: var(--darcula-accent) !important;
+  color: var(--darcula-text-bright) !important;
+}
+
+/* Dropdown */
+.dropdown-menu {
+  background-color: var(--darcula-surface) !important;
+  border: 1px solid var(--darcula-border) !important;
+}
+
+.dropdown-item {
+  color: var(--darcula-text) !important;
+}
+
+.dropdown-item:hover, .dropdown-item:focus {
+  background-color: var(--darcula-surface-light) !important;
+  color: var(--darcula-text-bright) !important;
+}
+
+.dropdown-item.active {
+  background-color: var(--darcula-accent) !important;
+  color: var(--darcula-text-bright) !important;
+}
+
+/* Footer */
+footer {
+  background-color: var(--darcula-surface-dark) !important;
+  border-top: 1px solid var(--darcula-border);
+  color: var(--darcula-text) !important;
+}
+
+/* Progress bars */
+.progress {
+  background-color: var(--darcula-surface-light) !important;
+}
+
+.progress-bar {
+  background: linear-gradient(90deg, var(--darcula-accent), var(--darcula-accent-hover)) !important;
+}
+
+/* Chart Container */
+.chart-container {
+  background-color: var(--darcula-surface) !important;
+  border: 1px solid var(--darcula-border) !important;
+}
+
+/* Text colors */
+.text-muted {
+  color: #777777 !important;
+}
+
+.text-success {
+  color: var(--darcula-success) !important;
+}
+
+.text-primary {
+  color: var(--darcula-accent) !important;
+}
+
+/* Modal */
+.modal-content {
+  background-color: var(--darcula-surface) !important;
+  border: 1px solid var(--darcula-border) !important;
+}
+
+.modal-header, .modal-footer {
+  border-color: var(--darcula-border) !important;
+}
+
+.modal-title {
+  color: var(--darcula-text-bright) !important;
+}
+
+/* Close button */
+.btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Timeline for history */
+.timeline-item {
+  position: relative;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -15px;
+  top: 12px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--darcula-accent);
+  border: 2px solid var(--darcula-bg);
+}
+
+/* Custom scrollbars for Darcula */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--darcula-surface-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--darcula-border);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #666666;
+}
+
+/* Input group */
+.input-group-text {
+  background-color: var(--darcula-surface-light) !important;
+  border-color: var(--darcula-border) !important;
+  color: var(--darcula-text) !important;
+}
