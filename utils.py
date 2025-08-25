@@ -306,6 +306,10 @@ def import_from_excel(file_path):
                 
                 # Create equipment instance
                 equipment = Equipment(**equipment_data)
+                
+                # Add import history
+                equipment.add_to_history(f"Equipamento importado via planilha Excel (Responsável: {equipment_data.get('responsavel', 'N/A')})")
+                
                 db.session.add(equipment)
                 imported_count += 1
                 
