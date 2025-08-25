@@ -1,7 +1,7 @@
 /* Modern Theme - Contemporary Design */
 
 :root {
-  /* Modern Core Colors */
+  /* Light Theme Colors */
   --modern-bg: #F8F9FA;
   --modern-surface: #FFFFFF;
   --modern-surface-light: #F1F3F4;
@@ -499,4 +499,117 @@ footer {
 /* Smooth transitions for all interactive elements */
 * {
   transition: all 0.3s ease;
+}
+
+/* ===== DARK THEME ===== */
+[data-theme="dark"] {
+  /* Dark Theme Colors */
+  --modern-bg: #1a1a1a;
+  --modern-surface: #2d2d2d;
+  --modern-surface-light: #3a3a3a;
+  --modern-surface-dark: #0f0f0f;
+  --modern-border: #404040;
+  --modern-text: #e5e5e5;
+  --modern-text-bright: #ffffff;
+  --modern-accent: #818cf8;
+  --modern-accent-hover: #a5b4fc;
+  --modern-success: #34d399;
+  --modern-warning: #fbbf24;
+  --modern-danger: #f87171;
+  --modern-info: #60a5fa;
+  --modern-secondary: #9ca3af;
+  
+  /* Override Bootstrap Variables for Dark Theme */
+  --bs-body-bg: var(--modern-bg);
+  --bs-body-color: var(--modern-text);
+  --bs-card-bg: var(--modern-surface);
+  --bs-card-border-color: var(--modern-border);
+  --bs-border-color: var(--modern-border);
+  --bs-primary: var(--modern-accent);
+  --bs-primary-rgb: 129, 140, 248;
+  --bs-success: var(--modern-success);
+  --bs-success-rgb: 52, 211, 153;
+  --bs-warning: var(--modern-warning);
+  --bs-warning-rgb: 251, 191, 36;
+  --bs-danger: var(--modern-danger);
+  --bs-danger-rgb: 248, 113, 113;
+  --bs-info: var(--modern-info);
+  --bs-info-rgb: 96, 165, 250;
+  --bs-secondary: var(--modern-secondary);
+  --bs-secondary-rgb: 156, 163, 175;
+}
+
+/* Dark theme specific adjustments */
+[data-theme="dark"] .navbar {
+  background: linear-gradient(135deg, var(--modern-surface-dark) 0%, var(--modern-surface) 100%) !important;
+  box-shadow: 0 1px 3px 0 rgba(255, 255, 255, 0.1), 0 1px 2px 0 rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="dark"] .card:hover {
+  box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.1), 0 2px 4px -1px rgba(255, 255, 255, 0.06) !important;
+}
+
+[data-theme="dark"] .table-hover tbody tr:hover {
+  background-color: rgba(129, 140, 248, 0.1) !important;
+}
+
+[data-theme="dark"] .table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(129, 140, 248, 0.05) !important;
+}
+
+[data-theme="dark"] .form-control:focus, 
+[data-theme="dark"] .form-select:focus {
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.15) !important;
+}
+
+[data-theme="dark"] .alert-primary {
+  background: linear-gradient(135deg, rgba(129, 140, 248, 0.15), rgba(129, 140, 248, 0.08)) !important;
+}
+
+[data-theme="dark"] .alert-success {
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.15), rgba(52, 211, 153, 0.08)) !important;
+}
+
+[data-theme="dark"] .alert-warning {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(251, 191, 36, 0.08)) !important;
+}
+
+[data-theme="dark"] .alert-danger {
+  background: linear-gradient(135deg, rgba(248, 113, 113, 0.15), rgba(248, 113, 113, 0.08)) !important;
+}
+
+[data-theme="dark"] .alert-info {
+  background: linear-gradient(135deg, rgba(96, 165, 250, 0.15), rgba(96, 165, 250, 0.08)) !important;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: var(--modern-surface-dark);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: var(--modern-border);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--modern-secondary);
+}
+
+/* Theme toggle button */
+#themeToggle {
+  border: none !important;
+  background: transparent !important;
+  color: var(--modern-text) !important;
+  border-radius: 8px !important;
+  width: 40px !important;
+  height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.3s ease !important;
+}
+
+#themeToggle:hover {
+  background: var(--modern-surface-light) !important;
+  color: var(--modern-accent) !important;
+  transform: scale(1.1);
 }
