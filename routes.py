@@ -12,16 +12,16 @@ def dashboard():
     """Main dashboard route"""
     stats = Equipment.get_dashboard_stats()
     uf_data = Equipment.get_by_uf()
-    cnpj_data = Equipment.get_valor_by_cnpj()
-    
-    # Create charts
-    uf_chart = create_uf_chart(uf_data) if uf_data else '{}'
-    value_chart = create_value_chart(cnpj_data) if cnpj_data else '{}'
+    fornecedor_data = Equipment.get_by_fornecedor()
+    status_data = Equipment.get_by_status()
+    top_responsaveis = Equipment.get_top_responsaveis()
     
     return render_template('dashboard.html', 
                          stats=stats, 
-                         uf_chart=uf_chart,
-                         value_chart=value_chart)
+                         uf_data=uf_data,
+                         fornecedor_data=fornecedor_data,
+                         status_data=status_data,
+                         top_responsaveis=top_responsaveis)
 
 @app.route('/equipment')
 def equipment_list():
