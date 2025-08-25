@@ -250,3 +250,8 @@ footer {
 [data-bs-theme="dark"] ::-webkit-scrollbar-thumb:hover {
     background: var(--bs-gray-500);
 }
+/* === Sobrescrevendo a cor success do Bootstrap === */
+:root {
+  --bs-success: #0043a6;
+  --bs-success-rgb: 92, 171, 255;
+}
