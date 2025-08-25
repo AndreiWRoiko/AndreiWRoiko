@@ -3,8 +3,8 @@
 {% block title %}Dashboard - Sistema de Inventário{% endblock %}
 
 {% block head %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <style>
     .dashboard-card {
         border: none;
@@ -326,6 +326,13 @@
 
 {% block scripts %}
 <script>
+// Wait for Chart.js to load
+if (typeof Chart === 'undefined') {
+    console.error('Chart.js não carregou corretamente');
+} else {
+    console.log('Chart.js carregado com sucesso');
+}
+
 // Chart.js configurations with green theme
 const chartColors = {
     primary: '#28a745',
