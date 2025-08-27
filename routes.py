@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, url_for, flash, jsonify
 from app import app, db
-from models import Equipment, CentroCusto, Task
+from models import Equipment, CentroCusto, Task, ChecklistItem
 from forms import EquipmentForm, SearchForm, ImportForm, CentroCustoForm, TaskForm, get_centro_custo_choices, get_equipment_choices
 from utils import export_to_excel, export_to_pdf, create_uf_chart, create_value_chart, filter_equipment, import_from_excel
 import json
@@ -477,19 +477,39 @@ def planner():
 def task_new():
     """Create new task"""
     form = TaskForm()
-    form.equipment_id.choices = get_equipment_choices()
     
     if form.validate_on_submit():
+        # Validate equipment ID if provided
+        if form.equipment_id.data:
+            equipment = Equipment.query.get(form.equipment_id.data)
+            if not equipment:
+                flash('Equipamento com ID especificado não foi encontrado!', 'error')
+                return render_template('task_form.html', form=form, title='Nova Tarefa')
+        
         task = Task()
         task.title = form.title.data
         task.description = form.description.data
         task.status = form.status.data
         task.priority = form.priority.data
-        task.equipment_id = form.equipment_id.data
+        task.equipment_id = form.equipment_id.data if form.equipment_id.data else None
         task.assigned_to = form.assigned_to.data
         task.due_date = form.due_date.data
         
         db.session.add(task)
+        db.session.flush()  # Get the task ID
+        
+        # Process checklist items
+        if form.checklist_items.data:
+            checklist_text = form.checklist_items.data.strip()
+            if checklist_text:
+                items = [item.strip() for item in checklist_text.split('\n') if item.strip()]
+                for index, item_title in enumerate(items):
+                    checklist_item = ChecklistItem()
+                    checklist_item.task_id = task.id
+                    checklist_item.title = item_title
+                    checklist_item.order_index = index
+                    db.session.add(checklist_item)
+        
         db.session.commit()
         flash('Tarefa criada com sucesso!', 'success')
         return redirect(url_for('planner'))
@@ -501,16 +521,41 @@ def task_edit(id):
     """Edit task"""
     task = Task.query.get_or_404(id)
     form = TaskForm(obj=task)
-    form.equipment_id.choices = get_equipment_choices()
+    
+    # Populate checklist items in the form
+    if request.method == 'GET':
+        existing_items = [item.title for item in sorted(task.checklist_items, key=lambda x: x.order_index)]
+        form.checklist_items.data = '\n'.join(existing_items)
     
     if form.validate_on_submit():
+        # Validate equipment ID if provided
+        if form.equipment_id.data:
+            equipment = Equipment.query.get(form.equipment_id.data)
+            if not equipment:
+                flash('Equipamento com ID especificado não foi encontrado!', 'error')
+                return render_template('task_form.html', form=form, title='Editar Tarefa', task=task)
+        
         task.title = form.title.data
         task.description = form.description.data
         task.status = form.status.data
         task.priority = form.priority.data
-        task.equipment_id = form.equipment_id.data
+        task.equipment_id = form.equipment_id.data if form.equipment_id.data else None
         task.assigned_to = form.assigned_to.data
         task.due_date = form.due_date.data
+        
+        # Update checklist items - remove all existing and add new ones
+        ChecklistItem.query.filter_by(task_id=task.id).delete()
+        
+        if form.checklist_items.data:
+            checklist_text = form.checklist_items.data.strip()
+            if checklist_text:
+                items = [item.strip() for item in checklist_text.split('\n') if item.strip()]
+                for index, item_title in enumerate(items):
+                    checklist_item = ChecklistItem()
+                    checklist_item.task_id = task.id
+                    checklist_item.title = item_title
+                    checklist_item.order_index = index
+                    db.session.add(checklist_item)
         
         db.session.commit()
         flash('Tarefa atualizada com sucesso!', 'success')
@@ -539,6 +584,24 @@ def task_delete(id):
     db.session.commit()
     flash('Tarefa removida com sucesso!', 'success')
     return redirect(url_for('planner'))
+
+@app.route('/planner/task/<int:task_id>/checklist/<int:item_id>/toggle', methods=['POST'])
+def toggle_checklist_item(task_id, item_id):
+    """Toggle checklist item completion status"""
+    task = Task.query.get_or_404(task_id)
+    item = ChecklistItem.query.filter_by(id=item_id, task_id=task_id).first_or_404()
+    
+    item.completed = not item.completed
+    db.session.commit()
+    
+    # Calculate updated progress
+    progress = task.checklist_progress
+    
+    return jsonify({
+        'success': True,
+        'completed': item.completed,
+        'progress': progress
+    })
 
 @app.errorhandler(404)
 def not_found_error(error):

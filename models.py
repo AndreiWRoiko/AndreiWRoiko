@@ -209,9 +209,26 @@ class Task(db.Model):
     
     # Relacionamento com Equipment
     equipment = db.relationship('Equipment', backref='tasks', lazy=True)
+    checklist_items = db.relationship('ChecklistItem', backref='task', cascade='all, delete-orphan', lazy=True)
     
     def __repr__(self):
         return f'<Task {self.title}: {self.status}>'
+    
+    @property
+    def checklist_progress(self):
+        """Calculate checklist progress"""
+        if not self.checklist_items:
+            return {'completed': 0, 'total': 0, 'percentage': 0}
+        
+        total = len(self.checklist_items)
+        completed = len([item for item in self.checklist_items if item.completed])
+        percentage = (completed / total * 100) if total > 0 else 0
+        
+        return {
+            'completed': completed,
+            'total': total,
+            'percentage': round(percentage)
+        }
     
     @staticmethod
     def get_by_status():
@@ -238,6 +255,33 @@ class Task(db.Model):
             'equipment_name': f"{self.equipment.patrimonio} - {self.equipment.modelo}" if self.equipment else None,
             'assigned_to': self.assigned_to,
             'due_date': self.due_date.isoformat() if self.due_date else None,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
+
+
+class ChecklistItem(db.Model):
+    __tablename__ = 'checklist_item'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    task_id = db.Column(db.Integer, db.ForeignKey('task.id'), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    completed = db.Column(db.Boolean, default=False)
+    order_index = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def __repr__(self):
+        return f'<ChecklistItem {self.title}: {"✓" if self.completed else "○"}>'
+    
+    def to_dict(self):
+        """Convert checklist item to dictionary for JSON responses"""
+        return {
+            'id': self.id,
+            'task_id': self.task_id,
+            'title': self.title,
+            'completed': self.completed,
+            'order_index': self.order_index,
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()
         }

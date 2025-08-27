@@ -61,11 +61,48 @@
                                             {% if task.description %}
                                                 <p class="card-text small text-muted">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</p>
                                             {% endif %}
+                                            
+                                            <!-- Checklist Progress -->
+                                            {% if task.checklist_items %}
+                                                <div class="checklist-progress mb-2">
+                                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-list-check me-1"></i>
+                                                            Progresso
+                                                        </small>
+                                                        <small class="text-muted">{{ task.checklist_progress.completed }}/{{ task.checklist_progress.total }}</small>
+                                                    </div>
+                                                    <div class="progress" style="height: 6px;">
+                                                        <div class="progress-bar bg-success" role="progressbar" 
+                                                             style="width: {{ task.checklist_progress.percentage }}%">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Checklist Items -->
+                                                <div class="checklist-items">
+                                                    {% for item in task.checklist_items|sort(attribute='order_index') %}
+                                                        <div class="form-check form-check-sm mb-1">
+                                                            <input class="form-check-input checklist-checkbox" 
+                                                                   type="checkbox" 
+                                                                   id="item-{{ item.id }}"
+                                                                   data-task-id="{{ task.id }}"
+                                                                   data-item-id="{{ item.id }}"
+                                                                   {% if item.completed %}checked{% endif %}>
+                                                            <label class="form-check-label small {% if item.completed %}text-decoration-line-through text-muted{% endif %}" 
+                                                                   for="item-{{ item.id }}">
+                                                                {{ item.title }}
+                                                            </label>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            
                                             {% if task.equipment %}
-                                                <p class="card-text">
+                                                <p class="card-text mt-2">
                                                     <small class="text-primary">
                                                         <i class="fas fa-desktop me-1"></i>
-                                                        {{ task.equipment.patrimonio }} - {{ task.equipment.modelo }}
+                                                        ID {{ task.equipment.id }} - {{ task.equipment.patrimonio }} - {{ task.equipment.modelo }}
                                                     </small>
                                                 </p>
                                             {% endif %}
@@ -130,11 +167,48 @@
                                             {% if task.description %}
                                                 <p class="card-text small text-muted">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</p>
                                             {% endif %}
+                                            
+                                            <!-- Checklist Progress -->
+                                            {% if task.checklist_items %}
+                                                <div class="checklist-progress mb-2">
+                                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-list-check me-1"></i>
+                                                            Progresso
+                                                        </small>
+                                                        <small class="text-muted">{{ task.checklist_progress.completed }}/{{ task.checklist_progress.total }}</small>
+                                                    </div>
+                                                    <div class="progress" style="height: 6px;">
+                                                        <div class="progress-bar bg-success" role="progressbar" 
+                                                             style="width: {{ task.checklist_progress.percentage }}%">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Checklist Items -->
+                                                <div class="checklist-items">
+                                                    {% for item in task.checklist_items|sort(attribute='order_index') %}
+                                                        <div class="form-check form-check-sm mb-1">
+                                                            <input class="form-check-input checklist-checkbox" 
+                                                                   type="checkbox" 
+                                                                   id="item-{{ item.id }}"
+                                                                   data-task-id="{{ task.id }}"
+                                                                   data-item-id="{{ item.id }}"
+                                                                   {% if item.completed %}checked{% endif %}>
+                                                            <label class="form-check-label small {% if item.completed %}text-decoration-line-through text-muted{% endif %}" 
+                                                                   for="item-{{ item.id }}">
+                                                                {{ item.title }}
+                                                            </label>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            
                                             {% if task.equipment %}
-                                                <p class="card-text">
+                                                <p class="card-text mt-2">
                                                     <small class="text-primary">
                                                         <i class="fas fa-desktop me-1"></i>
-                                                        {{ task.equipment.patrimonio }} - {{ task.equipment.modelo }}
+                                                        ID {{ task.equipment.id }} - {{ task.equipment.patrimonio }} - {{ task.equipment.modelo }}
                                                     </small>
                                                 </p>
                                             {% endif %}
@@ -199,11 +273,48 @@
                                             {% if task.description %}
                                                 <p class="card-text small text-muted">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</p>
                                             {% endif %}
+                                            
+                                            <!-- Checklist Progress -->
+                                            {% if task.checklist_items %}
+                                                <div class="checklist-progress mb-2">
+                                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-list-check me-1"></i>
+                                                            Progresso
+                                                        </small>
+                                                        <small class="text-muted">{{ task.checklist_progress.completed }}/{{ task.checklist_progress.total }}</small>
+                                                    </div>
+                                                    <div class="progress" style="height: 6px;">
+                                                        <div class="progress-bar bg-success" role="progressbar" 
+                                                             style="width: {{ task.checklist_progress.percentage }}%">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Checklist Items -->
+                                                <div class="checklist-items">
+                                                    {% for item in task.checklist_items|sort(attribute='order_index') %}
+                                                        <div class="form-check form-check-sm mb-1">
+                                                            <input class="form-check-input checklist-checkbox" 
+                                                                   type="checkbox" 
+                                                                   id="item-{{ item.id }}"
+                                                                   data-task-id="{{ task.id }}"
+                                                                   data-item-id="{{ item.id }}"
+                                                                   {% if item.completed %}checked{% endif %}>
+                                                            <label class="form-check-label small {% if item.completed %}text-decoration-line-through text-muted{% endif %}" 
+                                                                   for="item-{{ item.id }}">
+                                                                {{ item.title }}
+                                                            </label>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            
                                             {% if task.equipment %}
-                                                <p class="card-text">
+                                                <p class="card-text mt-2">
                                                     <small class="text-primary">
                                                         <i class="fas fa-desktop me-1"></i>
-                                                        {{ task.equipment.patrimonio }} - {{ task.equipment.modelo }}
+                                                        ID {{ task.equipment.id }} - {{ task.equipment.patrimonio }} - {{ task.equipment.modelo }}
                                                     </small>
                                                 </p>
                                             {% endif %}
@@ -422,6 +533,64 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelector('#done-column').parentElement.querySelector('h5').innerHTML = 
             '<i class="fas fa-check me-2"></i>Concluído (' + doneCount + ')';
     }
+    
+    // Checklist item toggle functionality
+    const checklistCheckboxes = document.querySelectorAll('.checklist-checkbox');
+    checklistCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const taskId = this.dataset.taskId;
+            const itemId = this.dataset.itemId;
+            const isChecked = this.checked;
+            
+            // Temporarily disable the checkbox to prevent double-clicking
+            this.disabled = true;
+            
+            fetch(`/planner/task/${taskId}/checklist/${itemId}/toggle`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update the label styling
+                    const label = document.querySelector(`label[for="item-${itemId}"]`);
+                    if (data.completed) {
+                        label.classList.add('text-decoration-line-through', 'text-muted');
+                    } else {
+                        label.classList.remove('text-decoration-line-through', 'text-muted');
+                    }
+                    
+                    // Update progress bar and counter
+                    const taskCard = this.closest('.kanban-card');
+                    const progressBar = taskCard.querySelector('.progress-bar');
+                    const progressText = taskCard.querySelector('.checklist-progress small:last-child');
+                    
+                    if (progressBar && progressText) {
+                        progressBar.style.width = data.progress.percentage + '%';
+                        progressText.textContent = data.progress.completed + '/' + data.progress.total;
+                    }
+                    
+                    showToast(data.completed ? 'Item marcado como concluído!' : 'Item desmarcado!', 'success');
+                } else {
+                    // Revert checkbox state on error
+                    this.checked = !isChecked;
+                    showToast('Erro ao atualizar item', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Revert checkbox state on error
+                this.checked = !isChecked;
+                showToast('Erro ao atualizar item', 'error');
+            })
+            .finally(() => {
+                // Re-enable the checkbox
+                this.disabled = false;
+            });
+        });
+    });
 });
 
 // Function to confirm task deletion

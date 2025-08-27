@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired, FileAllowed
-from wtforms import StringField, FloatField, SelectField, BooleanField, DateField, TextAreaField, FieldList, FormField, HiddenField, PasswordField, SubmitField
+from wtforms import StringField, FloatField, SelectField, BooleanField, DateField, TextAreaField, FieldList, FormField, HiddenField, PasswordField, SubmitField, IntegerField
 from wtforms.validators import DataRequired, Email, Optional, NumberRange, URL, Length
 from datetime import date
 
@@ -201,7 +201,9 @@ class TaskForm(FlaskForm):
         ('medium', 'Média'),
         ('high', 'Alta')
     ], default='medium')
-    equipment_id = SelectField('Equipamento Relacionado', coerce=coerce_int_or_none)
+    equipment_id = IntegerField('ID do Equipamento', validators=[Optional()], render_kw={"placeholder": "Digite o ID do equipamento (ex: 1, 2, 3...)"})
     assigned_to = StringField('Responsável', render_kw={"placeholder": "Nome do responsável pela tarefa"})
     due_date = DateField('Data de Vencimento', format='%Y-%m-%d')
+    checklist_items = TextAreaField('Itens da Checklist (um por linha)', validators=[Optional()], 
+                                   render_kw={'rows': 5, 'placeholder': 'Digite um item por linha:\nReceber o Notebook\nInstalar as pendências no notebook\nCriar Termo\nAtualizar Planilha\nTrocar Equipamento'})
     submit = SubmitField('Salvar Tarefa')
