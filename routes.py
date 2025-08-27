@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, url_for, flash, jsonify
 from app import app, db
-from models import Equipment, CentroCusto, KanbanList, KanbanTask
+from models import Equipment, CentroCusto, KanbanList, KanbanTask, KanbanChecklist
 from forms import EquipmentForm, SearchForm, ImportForm, CentroCustoForm, KanbanListForm, KanbanTaskForm, get_centro_custo_choices
 from utils import export_to_excel, export_to_pdf, create_uf_chart, create_value_chart, filter_equipment, import_from_excel
 import json
@@ -556,7 +556,8 @@ def kanban_task_new():
                 'priority_color': task.priority_color,
                 'due_date': task.due_date.strftime('%d/%m/%Y') if task.due_date else None,
                 'is_overdue': task.is_overdue,
-                'list_id': task.list_id
+                'list_id': task.list_id,
+                'checklist_progress': task.checklist_progress
             }
         })
     
@@ -625,3 +626,89 @@ def kanban_task_move(task_id):
         return jsonify({'success': True})
     
     return jsonify({'success': False, 'error': 'Invalid data'})
+
+@app.route('/planner/task/<int:task_id>/checklist', methods=['GET'])
+def get_task_checklist(task_id):
+    """Get checklist items for a task"""
+    task = KanbanTask.query.get_or_404(task_id)
+    checklist_items = [
+        {
+            'id': item.id,
+            'text': item.text,
+            'completed': item.completed,
+            'position': item.position
+        }
+        for item in task.checklist_items
+    ]
+    return jsonify({
+        'success': True,
+        'task_id': task_id,
+        'checklist': checklist_items,
+        'progress': task.checklist_progress
+    })
+
+@app.route('/planner/task/<int:task_id>/checklist/add', methods=['POST'])
+def add_checklist_item(task_id):
+    """Add new checklist item to task"""
+    task = KanbanTask.query.get_or_404(task_id)
+    data = request.get_json()
+    
+    text = data.get('text', '').strip()
+    if not text:
+        return jsonify({'success': False, 'error': 'Texto é obrigatório'})
+    
+    # Get next position
+    max_position = db.session.query(db.func.max(KanbanChecklist.position)).filter_by(task_id=task_id).scalar() or 0
+    
+    checklist_item = KanbanChecklist(
+        text=text,
+        task_id=task_id,
+        position=max_position + 1
+    )
+    
+    db.session.add(checklist_item)
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'item': {
+            'id': checklist_item.id,
+            'text': checklist_item.text,
+            'completed': checklist_item.completed,
+            'position': checklist_item.position
+        },
+        'progress': task.checklist_progress
+    })
+
+@app.route('/planner/checklist/<int:item_id>/toggle', methods=['PUT'])
+def toggle_checklist_item(item_id):
+    """Toggle completion status of checklist item"""
+    item = KanbanChecklist.query.get_or_404(item_id)
+    item.completed = not item.completed
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'item': {
+            'id': item.id,
+            'text': item.text,
+            'completed': item.completed
+        },
+        'progress': item.task.checklist_progress
+    })
+
+@app.route('/planner/checklist/<int:item_id>/delete', methods=['DELETE'])
+def delete_checklist_item(item_id):
+    """Delete checklist item"""
+    item = KanbanChecklist.query.get_or_404(item_id)
+    task_id = item.task_id
+    db.session.delete(item)
+    db.session.commit()
+    
+    # Get updated progress
+    task = KanbanTask.query.get(task_id)
+    
+    return jsonify({
+        'success': True,
+        'progress': task.checklist_progress
+    })

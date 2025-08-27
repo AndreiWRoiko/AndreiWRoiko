@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
 let currentListId = null;
 let currentTaskId = null;
 let draggedTask = null;
+let checklistModal = null;
 
 // Initialize drag and drop functionality
 function initializeDragAndDrop() {
@@ -85,6 +86,14 @@ function initializeModals() {
     window.newListModal = new bootstrap.Modal(document.getElementById('newListModal'));
     window.newTaskModal = new bootstrap.Modal(document.getElementById('newTaskModal'));
     window.editTaskModal = new bootstrap.Modal(document.getElementById('editTaskModal'));
+    checklistModal = new bootstrap.Modal(document.getElementById('checklistModal'));
+    
+    // Add enter key listener for checklist input
+    document.getElementById('newChecklistItem').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            addChecklistItem();
+        }
+    });
 }
 
 function showNewListModal() {
@@ -311,6 +320,17 @@ function createTaskCardHTML(task) {
     
     const descriptionHTML = task.description ? 
         `<p class="task-description">${task.description}</p>` : '';
+        
+    const checklistHTML = task.checklist_progress ? 
+        `<div class="checklist-progress">
+            <div class="progress-bar-container">
+                <div class="progress-bar" style="width: ${task.checklist_progress.percentage}%"></div>
+            </div>
+            <small class="progress-text">
+                <i class="fas fa-check-square me-1"></i>
+                ${task.checklist_progress.completed}/${task.checklist_progress.total}
+            </small>
+        </div>` : '';
 
     return `
         <div class="task-card" data-task-id="${task.id}" draggable="true">
@@ -322,15 +342,19 @@ function createTaskCardHTML(task) {
             </div>
             
             ${descriptionHTML}
+            ${checklistHTML}
             
             <div class="task-footer">
                 ${dueDateHTML}
                 
                 <div class="task-actions">
-                    <button class="btn btn-sm btn-outline-primary" onclick="editTask(${task.id})">
+                    <button class="btn btn-sm btn-outline-secondary" onclick="showChecklistModal(${task.id})" title="Checklist">
+                        <i class="fas fa-check-square"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" onclick="editTask(${task.id})" title="Editar">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteTask(${task.id})">
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteTask(${task.id})" title="Excluir">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -386,4 +410,214 @@ function showErrorMessage(message) {
     setTimeout(() => {
         alertDiv.remove();
     }, 5000);
+}
+
+// Checklist functions
+function showChecklistModal(taskId) {
+    currentTaskId = taskId;
+    const taskCard = document.querySelector(`[data-task-id="${taskId}"]`);
+    const taskTitle = taskCard.querySelector('.task-title').textContent;
+    
+    document.getElementById('checklistTaskTitle').textContent = taskTitle;
+    document.getElementById('newChecklistItem').value = '';
+    
+    loadChecklistItems(taskId);
+    checklistModal.show();
+}
+
+function loadChecklistItems(taskId) {
+    fetch(`/planner/task/${taskId}/checklist`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayChecklistItems(data.checklist);
+                updateChecklistProgress(data.progress);
+            } else {
+                showErrorMessage('Erro ao carregar checklist');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading checklist:', error);
+            showErrorMessage('Erro de conexão ao carregar checklist');
+        });
+}
+
+function displayChecklistItems(items) {
+    const container = document.getElementById('checklistItems');
+    const emptyMessage = document.getElementById('emptyChecklist');
+    
+    if (items.length === 0) {
+        container.innerHTML = '';
+        emptyMessage.style.display = 'block';
+        return;
+    }
+    
+    emptyMessage.style.display = 'none';
+    container.innerHTML = items.map(item => createChecklistItemHTML(item)).join('');
+}
+
+function createChecklistItemHTML(item) {
+    return `
+        <div class="checklist-item ${item.completed ? 'completed' : ''}" data-item-id="${item.id}">
+            <input type="checkbox" class="form-check-input checklist-checkbox" 
+                   ${item.completed ? 'checked' : ''} 
+                   onchange="toggleChecklistItem(${item.id})">
+            <p class="checklist-text">${item.text}</p>
+            <div class="checklist-actions">
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteChecklistItem(${item.id})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function addChecklistItem() {
+    const input = document.getElementById('newChecklistItem');
+    const text = input.value.trim();
+    
+    if (!text) {
+        showErrorMessage('Digite um texto para o item do checklist');
+        return;
+    }
+    
+    fetch(`/planner/task/${currentTaskId}/checklist/add`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({ text: text })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            input.value = '';
+            loadChecklistItems(currentTaskId); // Reload to update display
+            updateTaskChecklistProgress(currentTaskId, data.progress);
+            showSuccessMessage('Item adicionado ao checklist!');
+        } else {
+            showErrorMessage(data.error || 'Erro ao adicionar item');
+        }
+    })
+    .catch(error => {
+        console.error('Error adding checklist item:', error);
+        showErrorMessage('Erro de conexão ao adicionar item');
+    });
+}
+
+function toggleChecklistItem(itemId) {
+    fetch(`/planner/checklist/${itemId}/toggle`, {
+        method: 'PUT',
+        headers: {
+            'X-CSRFToken': getCSRFToken()
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const itemElement = document.querySelector(`[data-item-id="${itemId}"]`);
+            if (data.item.completed) {
+                itemElement.classList.add('completed');
+            } else {
+                itemElement.classList.remove('completed');
+            }
+            updateChecklistProgress(data.progress);
+            updateTaskChecklistProgress(currentTaskId, data.progress);
+        } else {
+            showErrorMessage('Erro ao atualizar item');
+        }
+    })
+    .catch(error => {
+        console.error('Error toggling checklist item:', error);
+        showErrorMessage('Erro de conexão ao atualizar item');
+    });
+}
+
+function deleteChecklistItem(itemId) {
+    if (confirm('Tem certeza que deseja excluir este item?')) {
+        fetch(`/planner/checklist/${itemId}/delete`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.querySelector(`[data-item-id="${itemId}"]`).remove();
+                updateChecklistProgress(data.progress);
+                updateTaskChecklistProgress(currentTaskId, data.progress);
+                showSuccessMessage('Item excluído!');
+                
+                // Check if checklist is empty
+                const items = document.querySelectorAll('.checklist-item');
+                if (items.length === 0) {
+                    document.getElementById('emptyChecklist').style.display = 'block';
+                }
+            } else {
+                showErrorMessage('Erro ao excluir item');
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting checklist item:', error);
+            showErrorMessage('Erro de conexão ao excluir item');
+        });
+    }
+}
+
+function updateChecklistProgress(progress) {
+    const progressBar = document.getElementById('checklistProgressBar');
+    const progressText = document.getElementById('checklistProgressText');
+    
+    if (progress) {
+        progressBar.style.width = `${progress.percentage}%`;
+        progressText.innerHTML = `<i class="fas fa-check-square me-1"></i>${progress.completed}/${progress.total}`;
+    } else {
+        progressBar.style.width = '0%';
+        progressText.innerHTML = '<i class="fas fa-check-square me-1"></i>0/0';
+    }
+}
+
+function updateTaskChecklistProgress(taskId, progress) {
+    const taskCard = document.querySelector(`[data-task-id="${taskId}"]`);
+    if (!taskCard) return;
+    
+    let progressContainer = taskCard.querySelector('.checklist-progress');
+    
+    if (progress && progress.total > 0) {
+        if (!progressContainer) {
+            // Create progress container if it doesn't exist
+            const descriptionElement = taskCard.querySelector('.task-description');
+            const footerElement = taskCard.querySelector('.task-footer');
+            
+            const progressHTML = `
+                <div class="checklist-progress">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: ${progress.percentage}%"></div>
+                    </div>
+                    <small class="progress-text">
+                        <i class="fas fa-check-square me-1"></i>
+                        ${progress.completed}/${progress.total}
+                    </small>
+                </div>
+            `;
+            
+            if (descriptionElement) {
+                descriptionElement.insertAdjacentHTML('afterend', progressHTML);
+            } else {
+                footerElement.insertAdjacentHTML('beforebegin', progressHTML);
+            }
+        } else {
+            // Update existing progress
+            const progressBar = progressContainer.querySelector('.progress-bar');
+            const progressText = progressContainer.querySelector('.progress-text');
+            
+            progressBar.style.width = `${progress.percentage}%`;
+            progressText.innerHTML = `<i class="fas fa-check-square me-1"></i>${progress.completed}/${progress.total}`;
+        }
+    } else if (progressContainer) {
+        // Remove progress container if no items
+        progressContainer.remove();
+    }
 }

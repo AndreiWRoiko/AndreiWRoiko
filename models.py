@@ -231,6 +231,9 @@ class KanbanTask(db.Model):
     # Foreign key para a lista
     list_id = db.Column(db.Integer, db.ForeignKey('kanban_list.id'), nullable=False)
     
+    # Relacionamento com checklist
+    checklist_items = db.relationship('KanbanChecklist', backref='task', lazy=True, cascade='all, delete-orphan', order_by='KanbanChecklist.position')
+    
     def __repr__(self):
         return f'<KanbanTask {self.title}>'
     
@@ -250,3 +253,28 @@ class KanbanTask(db.Model):
         if self.due_date and not self.completed:
             return self.due_date < datetime.now().date()
         return False
+    
+    @property
+    def checklist_progress(self):
+        """Retorna o progresso do checklist (itens completados / total)"""
+        if not self.checklist_items:
+            return None
+        total = len(self.checklist_items)
+        completed = sum(1 for item in self.checklist_items if item.completed)
+        return {'completed': completed, 'total': total, 'percentage': (completed / total) * 100 if total > 0 else 0}
+
+
+class KanbanChecklist(db.Model):
+    __tablename__ = 'kanban_checklist'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.String(300), nullable=False)
+    completed = db.Column(db.Boolean, default=False)
+    position = db.Column(db.Integer, nullable=False, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Foreign key para a tarefa
+    task_id = db.Column(db.Integer, db.ForeignKey('kanban_task.id'), nullable=False)
+    
+    def __repr__(self):
+        return f'<KanbanChecklist {self.text}>'
