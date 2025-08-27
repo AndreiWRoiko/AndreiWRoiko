@@ -15,6 +15,24 @@ def get_centro_custo_choices():
     except:
         return [('', 'Selecione um centro de custo...')]
 
+def coerce_int_or_none(value):
+    """Coerce to int or None for required fields"""
+    if value == '' or value is None:
+        return None
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return None
+
+def coerce_int_or_empty(value):
+    """Coerce to int or empty string for optional fields"""
+    if value == '' or value is None:
+        return ''
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return ''
+
 class EquipmentForm(FlaskForm):
     responsavel = StringField('Responsável', validators=[DataRequired()])
     uf = SelectField('UF', choices=[
@@ -26,7 +44,7 @@ class EquipmentForm(FlaskForm):
         ('SE', 'SE'), ('TO', 'TO')
     ], validators=[DataRequired()])
     # Centro de Custo dinâmico
-    centro_custo_id = SelectField('Centro de Custo', coerce=int, validators=[DataRequired()])
+    centro_custo_id = SelectField('Centro de Custo', coerce=coerce_int_or_none, validators=[DataRequired()])
     
     # CNPJ com opções fixas
     cnpj = SelectField('CNPJ', choices=[
@@ -147,7 +165,7 @@ class SearchForm(FlaskForm):
         ('Telos', 'Telos')
     ])
 
-    cc = SelectField('Centro de Custo', coerce=int)
+    cc = SelectField('Centro de Custo', coerce=coerce_int_or_empty)
 
 class CentroCustoForm(FlaskForm):
     codigo = StringField('Código', validators=[DataRequired(), Length(min=1, max=20)], render_kw={"placeholder": "Ex: TI001"})
