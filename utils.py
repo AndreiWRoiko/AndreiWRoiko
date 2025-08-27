@@ -39,6 +39,7 @@ def export_to_excel(equipment_list):
                 'Memória RAM': equipment.memoria_ram,
                 'HD/SSD': equipment.hd_ssd,
                 'Sistema Operacional': equipment.sistema_operacional,
+                'Licença Microsoft': equipment.licenca_microsoft,
                 'Antivírus': 'Sim' if equipment.antivirus else 'Não',
                 'Termo Assinado': 'Sim' if equipment.termo_assinado else 'Não',
                 'Milvus Funcionando': 'Sim' if equipment.milvus_funcionando else 'Não',

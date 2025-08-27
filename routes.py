@@ -157,6 +157,7 @@ def equipment_new():
         equipment.memoria_ram = form.memoria_ram.data
         equipment.hd_ssd = form.hd_ssd.data
         equipment.sistema_operacional = form.sistema_operacional.data
+        equipment.licenca_microsoft = form.licenca_microsoft.data
         equipment.antivirus = form.antivirus.data
         equipment.termo_assinado = form.termo_assinado.data
         equipment.milvus_funcionando = form.milvus_funcionando.data
@@ -241,6 +242,8 @@ def equipment_edit(id):
             changes.append(f"HD/SSD: {equipment.hd_ssd or 'N/A'} → {form.hd_ssd.data or 'N/A'}")
         if equipment.sistema_operacional != form.sistema_operacional.data:
             changes.append(f"Sistema Operacional: {equipment.sistema_operacional or 'N/A'} → {form.sistema_operacional.data or 'N/A'}")
+        if equipment.licenca_microsoft != form.licenca_microsoft.data:
+            changes.append(f"Licença Microsoft: {equipment.licenca_microsoft or 'N/A'} → {form.licenca_microsoft.data or 'N/A'}")
         if equipment.antivirus != form.antivirus.data:
             changes.append(f"Antivírus: {'Sim' if equipment.antivirus else 'Não'} → {'Sim' if form.antivirus.data else 'Não'}")
         if equipment.termo_assinado != form.termo_assinado.data:
@@ -281,6 +284,7 @@ def equipment_edit(id):
         equipment.memoria_ram = form.memoria_ram.data
         equipment.hd_ssd = form.hd_ssd.data
         equipment.sistema_operacional = form.sistema_operacional.data
+        equipment.licenca_microsoft = form.licenca_microsoft.data
         equipment.antivirus = form.antivirus.data
         equipment.termo_assinado = form.termo_assinado.data
         equipment.milvus_funcionando = form.milvus_funcionando.data

@@ -104,6 +104,11 @@ class EquipmentForm(FlaskForm):
         ('macOS', 'macOS'),
         ('Outro', 'Outro')
     ], validators=[Optional()])
+    licenca_microsoft = SelectField('Licença Microsoft', choices=[
+        ('', 'Selecione...'),
+        ('Microsoft 365 Basic', 'Microsoft 365 Basic'),
+        ('Microsoft 365 Standard', 'Microsoft 365 Standard')
+    ], validators=[Optional()])
     
     antivirus = BooleanField('Antivírus Instalado')
     termo_assinado = BooleanField('Termo de Responsabilidade Assinado')

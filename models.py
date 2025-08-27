@@ -42,6 +42,7 @@ class Equipment(db.Model):
     memoria_ram = db.Column(db.String(20), nullable=True)
     hd_ssd = db.Column(db.String(50), nullable=True)
     sistema_operacional = db.Column(db.String(50), nullable=True)
+    licenca_microsoft = db.Column(db.String(50), nullable=True)
     antivirus = db.Column(db.Boolean, default=False)
     termo_assinado = db.Column(db.Boolean, default=False)
     milvus_funcionando = db.Column(db.Boolean, default=False)
