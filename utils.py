@@ -184,7 +184,7 @@ def filter_equipment(search_form):
         query = query.filter(Equipment.cnpj.like(f"%{search_form.cnpj.data}%"))
     
     if search_form.cc.data:
-        query = query.filter(Equipment.cc.like(f"%{search_form.cc.data}%"))
+        query = query.filter(Equipment.centro_custo_id == search_form.cc.data)
     
     if search_form.marca.data:
         query = query.filter(Equipment.marca == search_form.marca.data)

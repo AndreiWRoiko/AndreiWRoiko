@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect, url_for, flash, jsonify
 from app import app, db
-from models import Equipment
-from forms import EquipmentForm, SearchForm, ImportForm
+from models import Equipment, CentroCusto
+from forms import EquipmentForm, SearchForm, ImportForm, CentroCustoForm, get_centro_custo_choices
 from utils import export_to_excel, export_to_pdf, create_uf_chart, create_value_chart, filter_equipment, import_from_excel
 import json
 import os
@@ -29,6 +29,8 @@ def dashboard():
 def equipment_list():
     """Equipment list with search and filtering"""
     search_form = SearchForm(request.args)
+    # Carregar choices para centro de custo
+    search_form.cc.choices = [('', 'Todos')] + [(str(c.id), f"{c.codigo} - {c.descricao}") for c in CentroCusto.get_all_active()]
     page = request.args.get('page', 1, type=int)
     per_page = 20
     
@@ -82,10 +84,56 @@ def equipment_list():
                          search_form=search_form,
                          pagination=pagination)
 
+@app.route('/centro-custo/new', methods=['POST'])
+def centro_custo_new():
+    """Create new cost center via AJAX"""
+    form = CentroCustoForm()
+    
+    if form.validate_on_submit():
+        # Verificar se já existe
+        existing = CentroCusto.query.filter_by(codigo=form.codigo.data).first()
+        if existing:
+            return jsonify({
+                'success': False,
+                'message': 'Código já existe!'
+            })
+        
+        centro_custo = CentroCusto(
+            codigo=form.codigo.data,
+            descricao=form.descricao.data
+        )
+        db.session.add(centro_custo)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'id': centro_custo.id,
+            'codigo': centro_custo.codigo,
+            'descricao': centro_custo.descricao,
+            'message': 'Centro de custo criado com sucesso!'
+        })
+    
+    return jsonify({
+        'success': False,
+        'message': 'Dados inválidos!'
+    })
+
+@app.route('/centro-custo/list')
+def centro_custo_list():
+    """Get list of cost centers for AJAX"""
+    centros = CentroCusto.get_all_active()
+    return jsonify([{
+        'id': c.id,
+        'codigo': c.codigo,
+        'descricao': c.descricao
+    } for c in centros])
+
 @app.route('/equipment/new', methods=['GET', 'POST'])
 def equipment_new():
     """Create new equipment"""
     form = EquipmentForm()
+    # Carregar choices dinamicamente
+    form.centro_custo_id.choices = get_centro_custo_choices()
     
     if form.validate_on_submit():
         # Check if patrimonio already exists
@@ -97,7 +145,7 @@ def equipment_new():
         equipment = Equipment()
         equipment.responsavel = form.responsavel.data
         equipment.uf = form.uf.data
-        equipment.cc = form.cc.data
+        equipment.centro_custo_id = form.centro_custo_id.data
         equipment.cnpj = form.cnpj.data
         equipment.fornecedor = form.fornecedor.data
         equipment.modelo = form.modelo.data
@@ -141,6 +189,8 @@ def equipment_edit(id):
     """Edit equipment"""
     equipment = Equipment.query.get_or_404(id)
     form = EquipmentForm(obj=equipment)
+    # Carregar choices dinamicamente
+    form.centro_custo_id.choices = get_centro_custo_choices()
     
     if form.validate_on_submit():
         # Check if patrimonio already exists (excluding current equipment)
@@ -158,8 +208,11 @@ def equipment_edit(id):
             changes.append(f"Responsável: {equipment.responsavel} → {form.responsavel.data}")
         if equipment.uf != form.uf.data:
             changes.append(f"UF: {equipment.uf} → {form.uf.data}")
-        if equipment.cc != form.cc.data:
-            changes.append(f"Centro de Custo: {equipment.cc} → {form.cc.data}")
+        if equipment.centro_custo_id != form.centro_custo_id.data:
+            old_cc = f"{equipment.centro_custo.codigo} - {equipment.centro_custo.descricao}" if equipment.centro_custo else "N/A"
+            new_cc_obj = CentroCusto.query.get(form.centro_custo_id.data)
+            new_cc = f"{new_cc_obj.codigo} - {new_cc_obj.descricao}" if new_cc_obj else "N/A"
+            changes.append(f"Centro de Custo: {old_cc} → {new_cc}")
         if equipment.cnpj != form.cnpj.data:
             changes.append(f"CNPJ: {equipment.cnpj} → {form.cnpj.data}")
         if equipment.fornecedor != form.fornecedor.data:
@@ -210,7 +263,7 @@ def equipment_edit(id):
         # Update equipment fields
         equipment.responsavel = form.responsavel.data
         equipment.uf = form.uf.data
-        equipment.cc = form.cc.data
+        equipment.centro_custo_id = form.centro_custo_id.data
         equipment.cnpj = form.cnpj.data
         equipment.fornecedor = form.fornecedor.data
         equipment.modelo = form.modelo.data

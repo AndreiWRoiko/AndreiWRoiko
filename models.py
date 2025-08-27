@@ -2,13 +2,33 @@ from app import db
 from datetime import datetime
 from sqlalchemy import func
 
+class CentroCusto(db.Model):
+    __tablename__ = 'centro_custo'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    codigo = db.Column(db.String(20), unique=True, nullable=False)
+    descricao = db.Column(db.String(200), nullable=False)
+    ativo = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relacionamento com Equipment
+    equipment = db.relationship('Equipment', backref='centro_custo', lazy=True)
+    
+    def __repr__(self):
+        return f'<CentroCusto {self.codigo}: {self.descricao}>'
+    
+    @staticmethod
+    def get_all_active():
+        """Get all active cost centers"""
+        return CentroCusto.query.filter_by(ativo=True).order_by(CentroCusto.codigo).all()
+
 class Equipment(db.Model):
     __tablename__ = 'equipment'
     
     id = db.Column(db.Integer, primary_key=True)
     responsavel = db.Column(db.String(100), nullable=False)
     uf = db.Column(db.String(2), nullable=False)
-    cc = db.Column(db.String(20), nullable=False)  # Centro de Custo
+    centro_custo_id = db.Column(db.Integer, db.ForeignKey('centro_custo.id'), nullable=False)
     cnpj = db.Column(db.Text, nullable=False)  # Mudando para Text para permitir múltiplos CNPJs
     fornecedor = db.Column(db.String(100), nullable=True)  # Novo campo fornecedor
     modelo = db.Column(db.String(100), nullable=False)
@@ -89,7 +109,7 @@ class Equipment(db.Model):
             'id': self.id,
             'responsavel': self.responsavel,
             'uf': self.uf,
-            'cc': self.cc,
+            'cc': f"{self.centro_custo.codigo} - {self.centro_custo.descricao}" if self.centro_custo else '',
             'cnpj': self.cnpj,
             'fornecedor': self.fornecedor,
             'modelo': self.modelo,

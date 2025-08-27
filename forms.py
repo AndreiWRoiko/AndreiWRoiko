@@ -1,8 +1,19 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired, FileAllowed
 from wtforms import StringField, FloatField, SelectField, BooleanField, DateField, TextAreaField, FieldList, FormField, HiddenField, PasswordField
-from wtforms.validators import DataRequired, Email, Optional, NumberRange, URL
+from wtforms.validators import DataRequired, Email, Optional, NumberRange, URL, Length
 from datetime import date
+
+def get_centro_custo_choices():
+    """Função para carregar dinamicamente os centros de custo"""
+    try:
+        from models import CentroCusto
+        centros = CentroCusto.get_all_active()
+        choices = [('', 'Selecione um centro de custo...')]
+        choices.extend([(str(c.id), f"{c.codigo} - {c.descricao}") for c in centros])
+        return choices
+    except:
+        return [('', 'Selecione um centro de custo...')]
 
 class EquipmentForm(FlaskForm):
     responsavel = StringField('Responsável', validators=[DataRequired()])
@@ -14,24 +25,8 @@ class EquipmentForm(FlaskForm):
         ('RS', 'RS'), ('RO', 'RO'), ('RR', 'RR'), ('SC', 'SC'), ('SP', 'SP'),
         ('SE', 'SE'), ('TO', 'TO')
     ], validators=[DataRequired()])
-    # Centro de Custo com opções fixas
-    cc = SelectField('Centro de Custo', choices=[
-        ('', 'Selecione um centro de custo...'),
-        ('830000', '830000 - VALLOUREC JECEABA - 1'),
-        ('420101', '420101 -  OPUS - PR - PIC'),
-        ('620021', '620021 -  TELOS CONSULTORIA -PR- MERCADO LIVRE LONDRINA TEMPORARIOS'),
-        ('98', '98 - ACELERA IT'),
-        ('980001', '980001 - ACELERA IT - ADMINISTRATIVO'),
-        ('980003', '980003 - ACELERA IT - AGITA AI'),
-        ('980002', '980002 - ACELERA IT - COMERCIAL'),
-        ('300001', '300001 - ADMINISTRACAO COMERCIAL'),
-        ('20', '20 - ADMINISTRATIVO'),
-        ('500000', '500000 - ADMINISTRATIVO ENGENHARIA'),
-        ('89', '89 - ATENAS'),
-        ('890012', '890012 - ATENAS -  SUP FED AGRICULTURA ESTADO RS'),
-        ('890001', '890001 - ATENAS - ADMINISTRATIVO'),
-        ('98', '98 - ACELERA IT')
-    ], validators=[DataRequired()])
+    # Centro de Custo dinâmico
+    centro_custo_id = SelectField('Centro de Custo', coerce=int, validators=[DataRequired()])
     
     # CNPJ com opções fixas
     cnpj = SelectField('CNPJ', choices=[
@@ -152,22 +147,11 @@ class SearchForm(FlaskForm):
         ('Telos', 'Telos')
     ])
 
-    cc = SelectField('Centro de Custo', choices=[('', 'Todos')] + [
-        ('830000', '830000 - VALLOUREC JECEABA - 1'),
-        ('420101', '420101 -  OPUS - PR - PIC'),
-        ('620021', '620021 -  TELOS CONSULTORIA -PR- MERCADO LIVRE LONDRINA TEMPORARIOS'),
-        ('98', '98 - ACELERA IT'),
-        ('980001', '980001 - ACELERA IT - ADMINISTRATIVO'),
-        ('980003', '980003 - ACELERA IT - AGITA AI'),
-        ('980002', '980002 - ACELERA IT - COMERCIAL'),
-        ('300001', '300001 - ADMINISTRACAO COMERCIAL'),
-        ('20', '20 - ADMINISTRATIVO'),
-        ('500000', '500000 - ADMINISTRATIVO ENGENHARIA'),
-        ('89', '89 - ATENAS'),
-        ('890012', '890012 - ATENAS -  SUP FED AGRICULTURA ESTADO RS'),
-        ('890001', '890001 - ATENAS - ADMINISTRATIVO'),
-        ('98', '98 - ACELERA IT')
-    ])
+    cc = SelectField('Centro de Custo', coerce=int)
+
+class CentroCustoForm(FlaskForm):
+    codigo = StringField('Código', validators=[DataRequired(), Length(min=1, max=20)], render_kw={"placeholder": "Ex: TI001"})
+    descricao = StringField('Descrição', validators=[DataRequired(), Length(min=1, max=200)], render_kw={"placeholder": "Ex: Tecnologia da Informação"})
 
 class ImportForm(FlaskForm):
     file = FileField('Arquivo Excel', validators=[

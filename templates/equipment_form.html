@@ -81,11 +81,16 @@
                                     {% endif %}
                                 </div>
                                 <div class="col-md-3 mb-3">
-                                    {{ form.cc.label(class="form-label") }}
-                                    {{ form.cc(class="form-select" + (" is-invalid" if form.cc.errors else "")) }}
-                                    {% if form.cc.errors %}
+                                    {{ form.centro_custo_id.label(class="form-label") }}
+                                    <div class="input-group">
+                                        {{ form.centro_custo_id(class="form-select" + (" is-invalid" if form.centro_custo_id.errors else ""), id="centro_custo_select") }}
+                                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#centroCustoModal" title="Adicionar novo centro de custo">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                    {% if form.centro_custo_id.errors %}
                                         <div class="invalid-feedback">
-                                            {% for error in form.cc.errors %}{{ error }}{% endfor %}
+                                            {% for error in form.centro_custo_id.errors %}{{ error }}{% endfor %}
                                         </div>
                                     {% endif %}
                                 </div>
@@ -418,5 +423,85 @@
             });
         }
     });
+    
+    // Centro de Custo Modal Handler
+    document.getElementById('centroCustoForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const codigo = formData.get('codigo');
+        const descricao = formData.get('descricao');
+        
+        // Clear previous errors
+        this.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        this.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+        
+        fetch('/centro-custo/new', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `codigo=${encodeURIComponent(codigo)}&descricao=${encodeURIComponent(descricao)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Add new option to select
+                const select = document.getElementById('centro_custo_select');
+                const option = new Option(`${data.codigo} - ${data.descricao}`, data.id, true, true);
+                select.appendChild(option);
+                
+                // Close modal and reset form
+                bootstrap.Modal.getInstance(document.getElementById('centroCustoModal')).hide();
+                document.getElementById('centroCustoForm').reset();
+                
+                // Show success message
+                alert(data.message);
+            } else {
+                // Show error message
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Erro ao criar centro de custo');
+        });
+    });
 </script>
+
+<!-- Modal para Adicionar Centro de Custo -->
+<div class="modal fade" id="centroCustoModal" tabindex="-1" aria-labelledby="centroCustoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="centroCustoModalLabel">
+                    <i class="fas fa-plus-circle me-2"></i>
+                    Adicionar Novo Centro de Custo
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="centroCustoForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="codigo" class="form-label">Código</label>
+                        <input type="text" class="form-control" id="codigo" name="codigo" placeholder="Ex: TI001" required>
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="descricao" class="form-label">Descrição</label>
+                        <input type="text" class="form-control" id="descricao" name="descricao" placeholder="Ex: Tecnologia da Informação" required>
+                        <div class="invalid-feedback"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Salvar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
