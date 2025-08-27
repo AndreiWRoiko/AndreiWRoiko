@@ -191,3 +191,53 @@ class Equipment(db.Model):
             Equipment.marca,
             func.count(Equipment.id).label('count')
         ).filter(Equipment.marca.isnot(None)).group_by(Equipment.marca).order_by(func.count(Equipment.id).desc()).all()
+
+
+class Task(db.Model):
+    __tablename__ = 'task'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    status = db.Column(db.String(20), nullable=False, default='todo')  # todo, in_progress, done
+    priority = db.Column(db.String(10), nullable=False, default='medium')  # low, medium, high
+    equipment_id = db.Column(db.Integer, db.ForeignKey('equipment.id'), nullable=True)
+    assigned_to = db.Column(db.String(100), nullable=True)
+    due_date = db.Column(db.Date, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relacionamento com Equipment
+    equipment = db.relationship('Equipment', backref='tasks', lazy=True)
+    
+    def __repr__(self):
+        return f'<Task {self.title}: {self.status}>'
+    
+    @staticmethod
+    def get_by_status():
+        """Get tasks grouped by status"""
+        todo_tasks = Task.query.filter_by(status='todo').order_by(Task.created_at.desc()).all()
+        in_progress_tasks = Task.query.filter_by(status='in_progress').order_by(Task.updated_at.desc()).all()
+        done_tasks = Task.query.filter_by(status='done').order_by(Task.updated_at.desc()).all()
+        
+        return {
+            'todo': todo_tasks,
+            'in_progress': in_progress_tasks,
+            'done': done_tasks
+        }
+    
+    def to_dict(self):
+        """Convert task to dictionary for JSON responses"""
+        return {
+            'id': self.id,
+            'title': self.title,
+            'description': self.description,
+            'status': self.status,
+            'priority': self.priority,
+            'equipment_id': self.equipment_id,
+            'equipment_name': f"{self.equipment.patrimonio} - {self.equipment.modelo}" if self.equipment else None,
+            'assigned_to': self.assigned_to,
+            'due_date': self.due_date.isoformat() if self.due_date else None,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }

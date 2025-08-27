@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired, FileAllowed
-from wtforms import StringField, FloatField, SelectField, BooleanField, DateField, TextAreaField, FieldList, FormField, HiddenField, PasswordField
+from wtforms import StringField, FloatField, SelectField, BooleanField, DateField, TextAreaField, FieldList, FormField, HiddenField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Email, Optional, NumberRange, URL, Length
 from datetime import date
 
@@ -176,3 +176,32 @@ class ImportForm(FlaskForm):
         FileRequired(message='Por favor, selecione um arquivo'),
         FileAllowed(['xlsx', 'xls'], message='Apenas arquivos Excel (.xlsx, .xls) são permitidos')
     ])
+
+def get_equipment_choices():
+    """Função para carregar dinamicamente os equipamentos"""
+    try:
+        from models import Equipment
+        equipments = Equipment.query.all()
+        choices = [('', 'Selecione um equipamento (opcional)...')]
+        choices.extend([(str(e.id), f"{e.patrimonio} - {e.modelo}") for e in equipments])
+        return choices
+    except:
+        return [('', 'Selecione um equipamento (opcional)...')]
+
+class TaskForm(FlaskForm):
+    title = StringField('Título da Tarefa', validators=[DataRequired(), Length(min=1, max=200)], render_kw={"placeholder": "Ex: Instalação de antivírus"})
+    description = TextAreaField('Descrição', render_kw={"placeholder": "Descreva os detalhes da tarefa...", "rows": 4})
+    status = SelectField('Status', choices=[
+        ('todo', 'A Fazer'),
+        ('in_progress', 'Em Andamento'),
+        ('done', 'Concluído')
+    ], default='todo')
+    priority = SelectField('Prioridade', choices=[
+        ('low', 'Baixa'),
+        ('medium', 'Média'),
+        ('high', 'Alta')
+    ], default='medium')
+    equipment_id = SelectField('Equipamento Relacionado', coerce=coerce_int_or_none)
+    assigned_to = StringField('Responsável', render_kw={"placeholder": "Nome do responsável pela tarefa"})
+    due_date = DateField('Data de Vencimento', format='%Y-%m-%d')
+    submit = SubmitField('Salvar Tarefa')

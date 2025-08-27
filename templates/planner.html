@@ -1,0 +1,450 @@
+{% extends "base.html" %}
+
+{% block title %}Planner - Sistema de Inventário{% endblock %}
+
+{% block content %}
+<!-- Toast Container -->
+<div class="toast-container position-fixed top-0 end-0 p-3" id="toast-container" style="z-index: 1055;"></div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="fas fa-tasks me-2"></i>
+                Planner - Kanban
+            </h1>
+            <a href="{{ url_for('task_new') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Nova Tarefa
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="kanban-board">
+            <div class="row">
+                <!-- To Do Column -->
+                <div class="col-md-4 mb-4">
+                    <div class="kanban-column">
+                        <div class="kanban-header bg-secondary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-clock me-2"></i>
+                                A Fazer ({{ tasks.todo|length }})
+                            </h5>
+                        </div>
+                        <div class="kanban-body" id="todo-column" data-status="todo">
+                            {% for task in tasks.todo %}
+                                <div class="kanban-card" data-task-id="{{ task.id }}" draggable="true">
+                                    <div class="card task-card mb-3">
+                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-{{ 'danger' if task.priority == 'high' else 'warning' if task.priority == 'medium' else 'info' }}">
+                                                {{ 'Alta' if task.priority == 'high' else 'Média' if task.priority == 'medium' else 'Baixa' }}
+                                            </span>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li><a class="dropdown-item" href="{{ url_for('task_edit', id=task.id) }}">
+                                                        <i class="fas fa-edit me-2"></i>Editar
+                                                    </a></li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li><a class="dropdown-item text-danger" href="#" onclick="confirmDeleteTask({{ task.id }}, '{{ task.title }}')">
+                                                        <i class="fas fa-trash me-2"></i>Excluir
+                                                    </a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <h6 class="card-title">{{ task.title }}</h6>
+                                            {% if task.description %}
+                                                <p class="card-text small text-muted">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</p>
+                                            {% endif %}
+                                            {% if task.equipment %}
+                                                <p class="card-text">
+                                                    <small class="text-primary">
+                                                        <i class="fas fa-desktop me-1"></i>
+                                                        {{ task.equipment.patrimonio }} - {{ task.equipment.modelo }}
+                                                    </small>
+                                                </p>
+                                            {% endif %}
+                                            {% if task.assigned_to %}
+                                                <p class="card-text">
+                                                    <small class="text-info">
+                                                        <i class="fas fa-user me-1"></i>
+                                                        {{ task.assigned_to }}
+                                                    </small>
+                                                </p>
+                                            {% endif %}
+                                            {% if task.due_date %}
+                                                <p class="card-text">
+                                                    <small class="text-warning">
+                                                        <i class="fas fa-calendar me-1"></i>
+                                                        {{ task.due_date.strftime('%d/%m/%Y') }}
+                                                    </small>
+                                                </p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- In Progress Column -->
+                <div class="col-md-4 mb-4">
+                    <div class="kanban-column">
+                        <div class="kanban-header bg-warning text-dark">
+                            <h5 class="mb-0">
+                                <i class="fas fa-spinner me-2"></i>
+                                Em Andamento ({{ tasks.in_progress|length }})
+                            </h5>
+                        </div>
+                        <div class="kanban-body" id="in-progress-column" data-status="in_progress">
+                            {% for task in tasks.in_progress %}
+                                <div class="kanban-card" data-task-id="{{ task.id }}" draggable="true">
+                                    <div class="card task-card mb-3">
+                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-{{ 'danger' if task.priority == 'high' else 'warning' if task.priority == 'medium' else 'info' }}">
+                                                {{ 'Alta' if task.priority == 'high' else 'Média' if task.priority == 'medium' else 'Baixa' }}
+                                            </span>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li><a class="dropdown-item" href="{{ url_for('task_edit', id=task.id) }}">
+                                                        <i class="fas fa-edit me-2"></i>Editar
+                                                    </a></li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li><a class="dropdown-item text-danger" href="#" onclick="confirmDeleteTask({{ task.id }}, '{{ task.title }}')">
+                                                        <i class="fas fa-trash me-2"></i>Excluir
+                                                    </a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <h6 class="card-title">{{ task.title }}</h6>
+                                            {% if task.description %}
+                                                <p class="card-text small text-muted">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</p>
+                                            {% endif %}
+                                            {% if task.equipment %}
+                                                <p class="card-text">
+                                                    <small class="text-primary">
+                                                        <i class="fas fa-desktop me-1"></i>
+                                                        {{ task.equipment.patrimonio }} - {{ task.equipment.modelo }}
+                                                    </small>
+                                                </p>
+                                            {% endif %}
+                                            {% if task.assigned_to %}
+                                                <p class="card-text">
+                                                    <small class="text-info">
+                                                        <i class="fas fa-user me-1"></i>
+                                                        {{ task.assigned_to }}
+                                                    </small>
+                                                </p>
+                                            {% endif %}
+                                            {% if task.due_date %}
+                                                <p class="card-text">
+                                                    <small class="text-warning">
+                                                        <i class="fas fa-calendar me-1"></i>
+                                                        {{ task.due_date.strftime('%d/%m/%Y') }}
+                                                    </small>
+                                                </p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Done Column -->
+                <div class="col-md-4 mb-4">
+                    <div class="kanban-column">
+                        <div class="kanban-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-check me-2"></i>
+                                Concluído ({{ tasks.done|length }})
+                            </h5>
+                        </div>
+                        <div class="kanban-body" id="done-column" data-status="done">
+                            {% for task in tasks.done %}
+                                <div class="kanban-card" data-task-id="{{ task.id }}" draggable="true">
+                                    <div class="card task-card mb-3">
+                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-{{ 'danger' if task.priority == 'high' else 'warning' if task.priority == 'medium' else 'info' }}">
+                                                {{ 'Alta' if task.priority == 'high' else 'Média' if task.priority == 'medium' else 'Baixa' }}
+                                            </span>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li><a class="dropdown-item" href="{{ url_for('task_edit', id=task.id) }}">
+                                                        <i class="fas fa-edit me-2"></i>Editar
+                                                    </a></li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li><a class="dropdown-item text-danger" href="#" onclick="confirmDeleteTask({{ task.id }}, '{{ task.title }}')">
+                                                        <i class="fas fa-trash me-2"></i>Excluir
+                                                    </a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <h6 class="card-title">{{ task.title }}</h6>
+                                            {% if task.description %}
+                                                <p class="card-text small text-muted">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</p>
+                                            {% endif %}
+                                            {% if task.equipment %}
+                                                <p class="card-text">
+                                                    <small class="text-primary">
+                                                        <i class="fas fa-desktop me-1"></i>
+                                                        {{ task.equipment.patrimonio }} - {{ task.equipment.modelo }}
+                                                    </small>
+                                                </p>
+                                            {% endif %}
+                                            {% if task.assigned_to %}
+                                                <p class="card-text">
+                                                    <small class="text-info">
+                                                        <i class="fas fa-user me-1"></i>
+                                                        {{ task.assigned_to }}
+                                                    </small>
+                                                </p>
+                                            {% endif %}
+                                            {% if task.due_date %}
+                                                <p class="card-text">
+                                                    <small class="text-warning">
+                                                        <i class="fas fa-calendar me-1"></i>
+                                                        {{ task.due_date.strftime('%d/%m/%Y') }}
+                                                    </small>
+                                                </p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.kanban-column {
+    background: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    height: 70vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.kanban-header {
+    padding: 1rem;
+    border-radius: 8px 8px 0 0;
+    text-align: center;
+}
+
+.kanban-body {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
+    min-height: 200px;
+}
+
+.kanban-card {
+    cursor: move;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kanban-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.kanban-card.dragging {
+    opacity: 0.5;
+    transform: rotate(5deg);
+}
+
+.kanban-body.drag-over {
+    background: #e3f2fd;
+    border: 2px dashed #2196f3;
+}
+
+.task-card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.task-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+@media (max-width: 768px) {
+    .kanban-column {
+        height: auto;
+        margin-bottom: 1rem;
+    }
+}
+</style>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Toast notification function
+function showToast(message, type = 'success') {
+    const toastContainer = document.getElementById('toast-container');
+    const toastId = 'toast-' + Date.now();
+    
+    const iconClass = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle';
+    const bgClass = type === 'success' ? 'bg-success' : 'bg-danger';
+    
+    const toastHTML = `
+        <div class="toast align-items-center text-white ${bgClass} border-0" role="alert" id="${toastId}" data-bs-autohide="true" data-bs-delay="4000">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas ${iconClass} me-2"></i>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `;
+    
+    toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+    
+    const toastElement = document.getElementById(toastId);
+    const toast = new bootstrap.Toast(toastElement);
+    toast.show();
+    
+    // Remove toast element after it's hidden
+    toastElement.addEventListener('hidden.bs.toast', function() {
+        this.remove();
+    });
+}
+
+// Drag and Drop functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const kanbanCards = document.querySelectorAll('.kanban-card');
+    const kanbanColumns = document.querySelectorAll('.kanban-body');
+    
+    // Add drag event listeners to cards
+    kanbanCards.forEach(card => {
+        card.addEventListener('dragstart', handleDragStart);
+        card.addEventListener('dragend', handleDragEnd);
+    });
+    
+    // Add drop event listeners to columns
+    kanbanColumns.forEach(column => {
+        column.addEventListener('dragover', handleDragOver);
+        column.addEventListener('drop', handleDrop);
+        column.addEventListener('dragenter', handleDragEnter);
+        column.addEventListener('dragleave', handleDragLeave);
+    });
+    
+    function handleDragStart(e) {
+        this.classList.add('dragging');
+        e.dataTransfer.setData('text/plain', this.dataset.taskId);
+    }
+    
+    function handleDragEnd(e) {
+        this.classList.remove('dragging');
+    }
+    
+    function handleDragOver(e) {
+        e.preventDefault();
+    }
+    
+    function handleDragEnter(e) {
+        e.preventDefault();
+        this.classList.add('drag-over');
+    }
+    
+    function handleDragLeave(e) {
+        this.classList.remove('drag-over');
+    }
+    
+    function handleDrop(e) {
+        e.preventDefault();
+        this.classList.remove('drag-over');
+        
+        const taskId = e.dataTransfer.getData('text/plain');
+        const newStatus = this.dataset.status;
+        const taskCard = document.querySelector(`[data-task-id="${taskId}"]`);
+        
+        // Move the card to the new column
+        this.appendChild(taskCard);
+        
+        // Update task status via AJAX
+        fetch(`/planner/task/${taskId}/update-status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status: newStatus })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, 'success');
+                // Update column counts
+                updateColumnCounts();
+            } else {
+                showToast(data.message, 'error');
+                // Revert the move
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Erro ao atualizar status', 'error');
+            location.reload();
+        });
+    }
+    
+    function updateColumnCounts() {
+        const todoCount = document.querySelectorAll('#todo-column .kanban-card').length;
+        const inProgressCount = document.querySelectorAll('#in-progress-column .kanban-card').length;
+        const doneCount = document.querySelectorAll('#done-column .kanban-card').length;
+        
+        document.querySelector('#todo-column').parentElement.querySelector('h5').innerHTML = 
+            '<i class="fas fa-clock me-2"></i>A Fazer (' + todoCount + ')';
+        document.querySelector('#in-progress-column').parentElement.querySelector('h5').innerHTML = 
+            '<i class="fas fa-spinner me-2"></i>Em Andamento (' + inProgressCount + ')';
+        document.querySelector('#done-column').parentElement.querySelector('h5').innerHTML = 
+            '<i class="fas fa-check me-2"></i>Concluído (' + doneCount + ')';
+    }
+});
+
+// Function to confirm task deletion
+function confirmDeleteTask(taskId, taskTitle) {
+    if (confirm(`Tem certeza que deseja excluir a tarefa "${taskTitle}"?\n\nEsta ação não pode ser desfeita.`)) {
+        // Create a form to submit the delete request
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/planner/task/${taskId}/delete`;
+        
+        // Add CSRF token if available
+        const csrfToken = document.querySelector('input[name="csrf_token"]');
+        if (csrfToken) {
+            const tokenInput = document.createElement('input');
+            tokenInput.type = 'hidden';
+            tokenInput.name = 'csrf_token';
+            tokenInput.value = csrfToken.value;
+            form.appendChild(tokenInput);
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+{% endblock %}

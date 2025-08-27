@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect, url_for, flash, jsonify
 from app import app, db
-from models import Equipment, CentroCusto
-from forms import EquipmentForm, SearchForm, ImportForm, CentroCustoForm, get_centro_custo_choices
+from models import Equipment, CentroCusto, Task
+from forms import EquipmentForm, SearchForm, ImportForm, CentroCustoForm, TaskForm, get_centro_custo_choices, get_equipment_choices
 from utils import export_to_excel, export_to_pdf, create_uf_chart, create_value_chart, filter_equipment, import_from_excel
 import json
 import os
@@ -465,6 +465,80 @@ def history_by_profile(profile_name):
                          total_entries=total_entries,
                          profiles=profiles,
                          current_profile=profile_name)
+
+# Planner Routes
+@app.route('/planner')
+def planner():
+    """Kanban planner view"""
+    tasks = Task.get_by_status()
+    return render_template('planner.html', tasks=tasks)
+
+@app.route('/planner/task/new', methods=['GET', 'POST'])
+def task_new():
+    """Create new task"""
+    form = TaskForm()
+    form.equipment_id.choices = get_equipment_choices()
+    
+    if form.validate_on_submit():
+        task = Task()
+        task.title = form.title.data
+        task.description = form.description.data
+        task.status = form.status.data
+        task.priority = form.priority.data
+        task.equipment_id = form.equipment_id.data
+        task.assigned_to = form.assigned_to.data
+        task.due_date = form.due_date.data
+        
+        db.session.add(task)
+        db.session.commit()
+        flash('Tarefa criada com sucesso!', 'success')
+        return redirect(url_for('planner'))
+    
+    return render_template('task_form.html', form=form, title='Nova Tarefa')
+
+@app.route('/planner/task/<int:id>/edit', methods=['GET', 'POST'])
+def task_edit(id):
+    """Edit task"""
+    task = Task.query.get_or_404(id)
+    form = TaskForm(obj=task)
+    form.equipment_id.choices = get_equipment_choices()
+    
+    if form.validate_on_submit():
+        task.title = form.title.data
+        task.description = form.description.data
+        task.status = form.status.data
+        task.priority = form.priority.data
+        task.equipment_id = form.equipment_id.data
+        task.assigned_to = form.assigned_to.data
+        task.due_date = form.due_date.data
+        
+        db.session.commit()
+        flash('Tarefa atualizada com sucesso!', 'success')
+        return redirect(url_for('planner'))
+    
+    return render_template('task_form.html', form=form, title='Editar Tarefa', task=task)
+
+@app.route('/planner/task/<int:id>/update-status', methods=['POST'])
+def task_update_status(id):
+    """Update task status via AJAX"""
+    task = Task.query.get_or_404(id)
+    data = request.get_json()
+    
+    if 'status' in data:
+        task.status = data['status']
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Status atualizado!'})
+    
+    return jsonify({'success': False, 'message': 'Status inválido!'})
+
+@app.route('/planner/task/<int:id>/delete', methods=['POST'])
+def task_delete(id):
+    """Delete task"""
+    task = Task.query.get_or_404(id)
+    db.session.delete(task)
+    db.session.commit()
+    flash('Tarefa removida com sucesso!', 'success')
+    return redirect(url_for('planner'))
 
 @app.errorhandler(404)
 def not_found_error(error):
