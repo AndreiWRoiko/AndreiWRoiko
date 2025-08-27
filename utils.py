@@ -186,6 +186,9 @@ def filter_equipment(search_form):
     if search_form.cc.data:
         query = query.filter(Equipment.cc.like(f"%{search_form.cc.data}%"))
     
+    if search_form.marca.data:
+        query = query.filter(Equipment.marca == search_form.marca.data)
+    
     return query.all()
 
 def import_from_excel(file_path):

@@ -10,3 +10,4 @@
 [x] 10. Add Segmentos chart to dashboard showing device counts per segment/brand
 [x] 11. Add search magnifier functionality to history log
 [x] 12. Implement complete Darcula theme with dark color palette
+[x] 13. Fix search and filter functionality - added missing Segmento field and fixed form validation logic

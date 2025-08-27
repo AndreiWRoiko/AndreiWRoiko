@@ -32,7 +32,17 @@ def equipment_list():
     page = request.args.get('page', 1, type=int)
     per_page = 20
     
-    if search_form.validate():
+    # Check if any search criteria is provided
+    has_search_criteria = (
+        request.args.get('search_term') or 
+        request.args.get('uf') or 
+        request.args.get('status') or 
+        request.args.get('cnpj') or 
+        request.args.get('marca') or 
+        request.args.get('cc')
+    )
+    
+    if has_search_criteria:
         equipment = filter_equipment(search_form)
         # Manual pagination for filtered results
         total = len(equipment)

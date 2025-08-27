@@ -49,11 +49,15 @@
                         </div>
                         <div class="col-md-2 mb-3">
                             {{ search_form.cnpj.label(class="form-label") }}
-                            {{ search_form.cnpj(class="form-control", placeholder="CNPJ") }}
+                            {{ search_form.cnpj(class="form-select") }}
                         </div>
                         <div class="col-md-2 mb-3">
+                            {{ search_form.marca.label(class="form-label") }}
+                            {{ search_form.marca(class="form-select") }}
+                        </div>
+                        <div class="col-md-1 mb-3">
                             {{ search_form.cc.label(class="form-label") }}
-                            {{ search_form.cc(class="form-control", placeholder="Centro de Custo") }}
+                            {{ search_form.cc(class="form-select") }}
                         </div>
                         <div class="col-md-1 mb-3 d-flex align-items-end">
                             <button type="submit" class="btn btn-primary w-100">
@@ -160,7 +164,7 @@
                         <nav aria-label="Page navigation">
                             <ul class="pagination justify-content-center">
                                 <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
-                                    <a class="page-link" href="{% if pagination.has_prev %}{{ url_for('equipment_list', page=pagination.prev_num, search_term=request.args.get('search_term', ''), uf=request.args.get('uf', ''), status=request.args.get('status', ''), cnpj=request.args.get('cnpj', ''), cc=request.args.get('cc', '')) }}{% else %}#{% endif %}">
+                                    <a class="page-link" href="{% if pagination.has_prev %}{{ url_for('equipment_list', page=pagination.prev_num, search_term=request.args.get('search_term', ''), uf=request.args.get('uf', ''), status=request.args.get('status', ''), cnpj=request.args.get('cnpj', ''), marca=request.args.get('marca', ''), cc=request.args.get('cc', '')) }}{% else %}#{% endif %}">
                                         Anterior
                                     </a>
                                 </li>
@@ -168,7 +172,7 @@
                                 {% for page_num in range(1, pagination.pages + 1) %}
                                     {% if page_num <= 3 or page_num > pagination.pages - 3 or (page_num >= pagination.page - 1 and page_num <= pagination.page + 1) %}
                                         <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
-                                            <a class="page-link" href="{{ url_for('equipment_list', page=page_num, search_term=request.args.get('search_term', ''), uf=request.args.get('uf', ''), status=request.args.get('status', ''), cnpj=request.args.get('cnpj', ''), cc=request.args.get('cc', '')) }}">
+                                            <a class="page-link" href="{{ url_for('equipment_list', page=page_num, search_term=request.args.get('search_term', ''), uf=request.args.get('uf', ''), status=request.args.get('status', ''), cnpj=request.args.get('cnpj', ''), marca=request.args.get('marca', ''), cc=request.args.get('cc', '')) }}">
                                                 {{ page_num }}
                                             </a>
                                         </li>
@@ -180,7 +184,7 @@
                                 {% endfor %}
                                 
                                 <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
-                                    <a class="page-link" href="{% if pagination.has_next %}{{ url_for('equipment_list', page=pagination.next_num, search_term=request.args.get('search_term', ''), uf=request.args.get('uf', ''), status=request.args.get('status', ''), cnpj=request.args.get('cnpj', ''), cc=request.args.get('cc', '')) }}{% else %}#{% endif %}">
+                                    <a class="page-link" href="{% if pagination.has_next %}{{ url_for('equipment_list', page=pagination.next_num, search_term=request.args.get('search_term', ''), uf=request.args.get('uf', ''), status=request.args.get('status', ''), cnpj=request.args.get('cnpj', ''), marca=request.args.get('marca', ''), cc=request.args.get('cc', '')) }}{% else %}#{% endif %}">
                                         Próximo
                                     </a>
                                 </li>
