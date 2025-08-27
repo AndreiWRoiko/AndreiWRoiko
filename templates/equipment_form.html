@@ -424,48 +424,59 @@
         }
     });
     
-    // Centro de Custo Modal Handler
-    document.getElementById('centroCustoForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(this);
-        const codigo = formData.get('codigo');
-        const descricao = formData.get('descricao');
-        
-        // Clear previous errors
-        this.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-        this.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
-        
-        fetch('/centro-custo/new', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `codigo=${encodeURIComponent(codigo)}&descricao=${encodeURIComponent(descricao)}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Add new option to select
-                const select = document.getElementById('centro_custo_select');
-                const option = new Option(`${data.codigo} - ${data.descricao}`, data.id, true, true);
-                select.appendChild(option);
+    // Centro de Custo Modal Handler - moved inside DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', function() {
+        const centroCustoForm = document.getElementById('centroCustoForm');
+        if (centroCustoForm) {
+            centroCustoForm.addEventListener('submit', function(e) {
+                e.preventDefault();
                 
-                // Close modal and reset form
-                bootstrap.Modal.getInstance(document.getElementById('centroCustoModal')).hide();
-                document.getElementById('centroCustoForm').reset();
+                const formData = new FormData(this);
+                const codigo = formData.get('codigo');
+                const descricao = formData.get('descricao');
+                const csrfToken = formData.get('csrf_token');
                 
-                // Show success message
-                alert(data.message);
-            } else {
-                // Show error message
-                alert(data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Erro ao criar centro de custo');
-        });
+                // Clear previous errors
+                this.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                this.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+                
+                fetch('/centro-custo/new', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `codigo=${encodeURIComponent(codigo)}&descricao=${encodeURIComponent(descricao)}&csrf_token=${encodeURIComponent(csrfToken)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Add new option to select
+                        const select = document.getElementById('centro_custo_id');
+                        if (select) {
+                            const option = new Option(`${data.codigo} - ${data.descricao}`, data.id, true, true);
+                            select.appendChild(option);
+                        }
+                        
+                        // Close modal and reset form
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('centroCustoModal'));
+                        if (modal) {
+                            modal.hide();
+                        }
+                        document.getElementById('centroCustoForm').reset();
+                        
+                        // Show success message
+                        alert(data.message);
+                    } else {
+                        // Show error message
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Erro ao criar centro de custo');
+                });
+            });
+        }
     });
 </script>
 
@@ -481,6 +492,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="centroCustoForm">
+                {{ csrf_token() }}
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="codigo" class="form-label">Código</label>

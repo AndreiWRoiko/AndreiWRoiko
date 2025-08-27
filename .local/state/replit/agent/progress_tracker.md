@@ -11,3 +11,4 @@
 [x] 11. Add search magnifier functionality to history log
 [x] 12. Implement complete Darcula theme with dark color palette
 [x] 13. Fix search and filter functionality - added missing Segmento field and fixed form validation logic
+[x] 14. Fix Cost Center (Centro de Custo) functionality - resolved JavaScript DOM loading errors and added missing CSRF token
