@@ -192,3 +192,61 @@ class Equipment(db.Model):
             Equipment.marca,
             func.count(Equipment.id).label('count')
         ).filter(Equipment.marca.isnot(None)).group_by(Equipment.marca).order_by(func.count(Equipment.id).desc()).all()
+
+
+class KanbanList(db.Model):
+    __tablename__ = 'kanban_list'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    position = db.Column(db.Integer, nullable=False, default=0)
+    color = db.Column(db.String(7), default='#6c757d')  # Cor hexadecimal
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relacionamento com tarefas
+    tasks = db.relationship('KanbanTask', backref='list', lazy=True, cascade='all, delete-orphan', order_by='KanbanTask.position')
+    
+    def __repr__(self):
+        return f'<KanbanList {self.name}>'
+    
+    @staticmethod
+    def get_all_ordered():
+        """Retorna todas as listas ordenadas por posição"""
+        return KanbanList.query.order_by(KanbanList.position).all()
+
+
+class KanbanTask(db.Model):
+    __tablename__ = 'kanban_task'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    position = db.Column(db.Integer, nullable=False, default=0)
+    priority = db.Column(db.String(20), default='medium')  # low, medium, high
+    due_date = db.Column(db.Date, nullable=True)
+    completed = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Foreign key para a lista
+    list_id = db.Column(db.Integer, db.ForeignKey('kanban_list.id'), nullable=False)
+    
+    def __repr__(self):
+        return f'<KanbanTask {self.title}>'
+    
+    @property
+    def priority_color(self):
+        """Retorna a cor baseada na prioridade"""
+        colors = {
+            'low': '#28a745',
+            'medium': '#ffc107', 
+            'high': '#dc3545'
+        }
+        return colors.get(self.priority, '#6c757d')
+    
+    @property
+    def is_overdue(self):
+        """Verifica se a tarefa está atrasada"""
+        if self.due_date and not self.completed:
+            return self.due_date < datetime.now().date()
+        return False

@@ -181,3 +181,18 @@ class ImportForm(FlaskForm):
         FileRequired(message='Por favor, selecione um arquivo'),
         FileAllowed(['xlsx', 'xls'], message='Apenas arquivos Excel (.xlsx, .xls) são permitidos')
     ])
+
+class KanbanListForm(FlaskForm):
+    name = StringField('Nome da Lista', validators=[DataRequired(), Length(min=1, max=100)])
+    color = StringField('Cor', validators=[Optional()], render_kw={'type': 'color', 'value': '#6c757d'})
+
+class KanbanTaskForm(FlaskForm):
+    title = StringField('Título', validators=[DataRequired(), Length(min=1, max=200)])
+    description = TextAreaField('Descrição', validators=[Optional()])
+    priority = SelectField('Prioridade', choices=[
+        ('low', 'Baixa'),
+        ('medium', 'Média'),
+        ('high', 'Alta')
+    ], default='medium')
+    due_date = DateField('Data de Vencimento', validators=[Optional()])
+    list_id = SelectField('Lista', coerce=int)

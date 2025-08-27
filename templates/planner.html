@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}Planner - Sistema de Inventário{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/planner.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="planner-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>
+            <i class="fas fa-columns me-2"></i>
+            Planner
+        </h1>
+        <button class="btn btn-primary" onclick="showNewListModal()">
+            <i class="fas fa-plus me-2"></i>Nova Lista
+        </button>
+    </div>
+
+    <div class="kanban-board" id="kanbanBoard">
+        {% for list in lists %}
+        <div class="kanban-list" data-list-id="{{ list.id }}">
+            <div class="list-header" style="border-top: 3px solid {{ list.color }}">
+                <h5 class="list-title">{{ list.name }}</h5>
+                <div class="list-actions">
+                    <button class="btn btn-sm btn-outline-light" onclick="showNewTaskModal({{ list.id }})">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteList({{ list.id }})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="task-container" data-list-id="{{ list.id }}">
+                {% for task in list.tasks %}
+                <div class="task-card" data-task-id="{{ task.id }}" draggable="true">
+                    <div class="task-header">
+                        <h6 class="task-title">{{ task.title }}</h6>
+                        <span class="priority-badge" style="background-color: {{ task.priority_color }}">
+                            {{ task.priority.title() }}
+                        </span>
+                    </div>
+                    
+                    {% if task.description %}
+                    <p class="task-description">{{ task.description }}</p>
+                    {% endif %}
+                    
+                    <div class="task-footer">
+                        {% if task.due_date %}
+                        <small class="due-date {% if task.is_overdue %}overdue{% endif %}">
+                            <i class="fas fa-calendar-alt me-1"></i>
+                            {{ task.due_date.strftime('%d/%m/%Y') }}
+                        </small>
+                        {% endif %}
+                        
+                        <div class="task-actions">
+                            <button class="btn btn-sm btn-outline-primary" onclick="editTask({{ task.id }})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteTask({{ task.id }})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+        
+        <!-- Add List Placeholder -->
+        <div class="add-list-placeholder" onclick="showNewListModal()">
+            <i class="fas fa-plus"></i>
+            <span>Adicionar Lista</span>
+        </div>
+    </div>
+</div>
+
+<!-- New List Modal -->
+<div class="modal fade" id="newListModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nova Lista</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="newListForm">
+                    <div class="mb-3">
+                        <label for="listName" class="form-label">Nome da Lista</label>
+                        <input type="text" class="form-control" id="listName" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="listColor" class="form-label">Cor</label>
+                        <input type="color" class="form-control form-control-color" id="listColor" name="color" value="#6c757d">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="createList()">Criar Lista</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Task Modal -->
+<div class="modal fade" id="newTaskModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nova Tarefa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="newTaskForm">
+                    <input type="hidden" id="taskListId" name="list_id">
+                    <div class="mb-3">
+                        <label for="taskTitle" class="form-label">Título</label>
+                        <input type="text" class="form-control" id="taskTitle" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="taskDescription" class="form-label">Descrição</label>
+                        <textarea class="form-control" id="taskDescription" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="taskPriority" class="form-label">Prioridade</label>
+                            <select class="form-select" id="taskPriority" name="priority">
+                                <option value="low">Baixa</option>
+                                <option value="medium" selected>Média</option>
+                                <option value="high">Alta</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="taskDueDate" class="form-label">Data de Vencimento</label>
+                            <input type="date" class="form-control" id="taskDueDate" name="due_date">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="createTask()">Criar Tarefa</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Task Modal -->
+<div class="modal fade" id="editTaskModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Tarefa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editTaskForm">
+                    <input type="hidden" id="editTaskId">
+                    <div class="mb-3">
+                        <label for="editTaskTitle" class="form-label">Título</label>
+                        <input type="text" class="form-control" id="editTaskTitle" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editTaskDescription" class="form-label">Descrição</label>
+                        <textarea class="form-control" id="editTaskDescription" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editTaskPriority" class="form-label">Prioridade</label>
+                            <select class="form-select" id="editTaskPriority" name="priority">
+                                <option value="low">Baixa</option>
+                                <option value="medium">Média</option>
+                                <option value="high">Alta</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editTaskDueDate" class="form-label">Data de Vencimento</label>
+                            <input type="date" class="form-control" id="editTaskDueDate" name="due_date">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="updateTask()">Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/planner.js') }}"></script>
+{% endblock %}

@@ -13,3 +13,4 @@
 [x] 13. Fix search and filter functionality - added missing Segmento field and fixed form validation logic
 [x] 14. Fix Cost Center (Centro de Custo) functionality - resolved JavaScript DOM loading errors and added missing CSRF token
 [x] 15. Add "Licença Microsoft" field to technical specifications with options "Microsoft 365 Basic" and "Microsoft 365 Standard"
+[x] 16. Create Planner tab with Trello-like Kanban board functionality including drag-and-drop, task management, and list organization

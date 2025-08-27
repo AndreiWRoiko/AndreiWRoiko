@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect, url_for, flash, jsonify
 from app import app, db
-from models import Equipment, CentroCusto
-from forms import EquipmentForm, SearchForm, ImportForm, CentroCustoForm, get_centro_custo_choices
+from models import Equipment, CentroCusto, KanbanList, KanbanTask
+from forms import EquipmentForm, SearchForm, ImportForm, CentroCustoForm, KanbanListForm, KanbanTaskForm, get_centro_custo_choices
 from utils import export_to_excel, export_to_pdf, create_uf_chart, create_value_chart, filter_equipment, import_from_excel
 import json
 import os
@@ -478,3 +478,150 @@ def not_found_error(error):
 def internal_error(error):
     db.session.rollback()
     return render_template('500.html'), 500
+
+# Kanban/Planner Routes
+@app.route('/planner')
+def planner():
+    """Main planner/kanban board"""
+    lists = KanbanList.get_all_ordered()
+    return render_template('planner.html', lists=lists)
+
+@app.route('/planner/list/new', methods=['POST'])
+def kanban_list_new():
+    """Create new kanban list"""
+    form = KanbanListForm()
+    if form.validate_on_submit():
+        # Get next position
+        max_position = db.session.query(db.func.max(KanbanList.position)).scalar() or 0
+        
+        kanban_list = KanbanList(
+            name=form.name.data,
+            color=form.color.data,
+            position=max_position + 1
+        )
+        db.session.add(kanban_list)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'list': {
+                'id': kanban_list.id,
+                'name': kanban_list.name,
+                'color': kanban_list.color,
+                'position': kanban_list.position
+            }
+        })
+    
+    return jsonify({'success': False, 'errors': form.errors})
+
+@app.route('/planner/list/<int:list_id>/delete', methods=['DELETE'])
+def kanban_list_delete(list_id):
+    """Delete kanban list"""
+    kanban_list = KanbanList.query.get_or_404(list_id)
+    db.session.delete(kanban_list)
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+@app.route('/planner/task/new', methods=['POST'])
+def kanban_task_new():
+    """Create new kanban task"""
+    form = KanbanTaskForm()
+    
+    # Populate list choices
+    form.list_id.choices = [(l.id, l.name) for l in KanbanList.query.all()]
+    
+    if form.validate_on_submit():
+        # Get next position in the list
+        max_position = db.session.query(db.func.max(KanbanTask.position)).filter_by(list_id=form.list_id.data).scalar() or 0
+        
+        task = KanbanTask(
+            title=form.title.data,
+            description=form.description.data,
+            priority=form.priority.data,
+            due_date=form.due_date.data,
+            list_id=form.list_id.data,
+            position=max_position + 1
+        )
+        db.session.add(task)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'task': {
+                'id': task.id,
+                'title': task.title,
+                'description': task.description,
+                'priority': task.priority,
+                'priority_color': task.priority_color,
+                'due_date': task.due_date.strftime('%d/%m/%Y') if task.due_date else None,
+                'is_overdue': task.is_overdue,
+                'list_id': task.list_id
+            }
+        })
+    
+    return jsonify({'success': False, 'errors': form.errors})
+
+@app.route('/planner/task/<int:task_id>/edit', methods=['PUT'])
+def kanban_task_edit(task_id):
+    """Edit kanban task"""
+    task = KanbanTask.query.get_or_404(task_id)
+    data = request.get_json()
+    
+    if 'title' in data:
+        task.title = data['title']
+    if 'description' in data:
+        task.description = data['description']
+    if 'priority' in data:
+        task.priority = data['priority']
+    if 'due_date' in data:
+        if data['due_date']:
+            from datetime import datetime
+            task.due_date = datetime.strptime(data['due_date'], '%Y-%m-%d').date()
+        else:
+            task.due_date = None
+    if 'completed' in data:
+        task.completed = data['completed']
+    
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'task': {
+            'id': task.id,
+            'title': task.title,
+            'description': task.description,
+            'priority': task.priority,
+            'priority_color': task.priority_color,
+            'due_date': task.due_date.strftime('%d/%m/%Y') if task.due_date else None,
+            'is_overdue': task.is_overdue,
+            'completed': task.completed
+        }
+    })
+
+@app.route('/planner/task/<int:task_id>/delete', methods=['DELETE'])
+def kanban_task_delete(task_id):
+    """Delete kanban task"""
+    task = KanbanTask.query.get_or_404(task_id)
+    db.session.delete(task)
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+@app.route('/planner/task/<int:task_id>/move', methods=['PUT'])
+def kanban_task_move(task_id):
+    """Move task to different list and position"""
+    task = KanbanTask.query.get_or_404(task_id)
+    data = request.get_json()
+    
+    new_list_id = data.get('list_id')
+    new_position = data.get('position', 0)
+    
+    if new_list_id:
+        task.list_id = new_list_id
+        task.position = new_position
+        db.session.commit()
+        
+        return jsonify({'success': True})
+    
+    return jsonify({'success': False, 'error': 'Invalid data'})
