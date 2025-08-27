@@ -428,6 +428,13 @@
     document.addEventListener('DOMContentLoaded', function() {
         const centroCustoForm = document.getElementById('centroCustoForm');
         if (centroCustoForm) {
+            // Set CSRF token from main form
+            const mainCsrfToken = document.querySelector('input[name="csrf_token"]');
+            const modalCsrfToken = centroCustoForm.querySelector('input[name="csrf_token"]');
+            if (mainCsrfToken && modalCsrfToken) {
+                modalCsrfToken.value = mainCsrfToken.value;
+            }
+            
             centroCustoForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 
@@ -492,7 +499,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="centroCustoForm">
-                {{ csrf_token() }}
+                <input type="hidden" name="csrf_token" value=""/>
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="codigo" class="form-label">Código</label>
