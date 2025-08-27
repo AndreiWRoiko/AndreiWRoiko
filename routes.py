@@ -171,6 +171,12 @@ def equipment_new():
         # Adicionar histórico de criação
         equipment.add_to_history(f"Equipamento criado por {form.responsavel.data}")
         
+        # Populate cc field from centro_custo relationship
+        if equipment.centro_custo_id:
+            centro_custo = CentroCusto.query.get(equipment.centro_custo_id)
+            if centro_custo:
+                equipment.cc = f"{centro_custo.codigo} - {centro_custo.descricao}"
+        
         db.session.add(equipment)
         db.session.commit()
         flash('Equipamento adicionado com sucesso!', 'success')
@@ -285,6 +291,12 @@ def equipment_edit(id):
         equipment.email = form.email.data
         equipment.link_termos = form.link_termos.data
         equipment.senha = form.senha.data
+        
+        # Update cc field when centro_custo_id changes
+        if equipment.centro_custo_id:
+            centro_custo = CentroCusto.query.get(equipment.centro_custo_id)
+            if centro_custo:
+                equipment.cc = f"{centro_custo.codigo} - {centro_custo.descricao}"
         
         # Add to history if there were changes
         if changes:

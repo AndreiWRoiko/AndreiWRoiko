@@ -61,6 +61,7 @@ class Equipment(db.Model):
     link_termos = db.Column(db.String(500), nullable=True)  # Link dos termos assinados
     historico_modificacoes = db.Column(db.Text, nullable=True)  # Histórico de modificações
     senha = db.Column(db.String(255), nullable=True)  # Campo senha
+    cc = db.Column(db.String(300), nullable=True)  # Centro de custo texto (legacy field)
     
     def __repr__(self):
         return f'<Equipment {self.patrimonio}: {self.modelo}>'
