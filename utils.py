@@ -24,8 +24,9 @@ def export_to_excel(equipment_list):
             data.append(equipment)
         else:
             # Convert equipment objects to dictionaries
-            data.append({
+            equipment_data = {
                 'ID': equipment.id,
+                'Tipo de Equipamento': equipment.tipo_equipamento or 'notebook',
                 'Responsável': equipment.responsavel,
                 'UF': equipment.uf,
                 'Centro de Custo': equipment.cc,
@@ -48,7 +49,17 @@ def export_to_excel(equipment_list):
                 'Endereço': equipment.endereco,
                 'Telefone': equipment.telefone,
                 'Email': equipment.email
-            })
+            }
+            
+            # Adicionar campos específicos para celulares se aplicável
+            if equipment.tipo_equipamento == 'celular':
+                equipment_data.update({
+                    'IMEI': equipment.imei or '',
+                    'Linha Telefônica': equipment.linha_telefonica or '',
+                    'Sistema Operacional Celular': equipment.sistema_operacional_celular or ''
+                })
+            
+            data.append(equipment_data)
     
     # Create DataFrame
     df = pd.DataFrame(data)
@@ -172,8 +183,14 @@ def filter_equipment(search_form):
             Equipment.responsavel.like(search_term) |
             Equipment.modelo.like(search_term) |
             Equipment.patrimonio.like(search_term) |
-            Equipment.marca.like(search_term)
+            Equipment.marca.like(search_term) |
+            Equipment.imei.like(search_term) |
+            Equipment.linha_telefonica.like(search_term)
         )
+    
+    # Equipment type filter
+    if hasattr(search_form, 'tipo_equipamento') and search_form.tipo_equipamento.data:
+        query = query.filter(Equipment.tipo_equipamento == search_form.tipo_equipamento.data)
     
     if search_form.uf.data:
         query = query.filter(Equipment.uf == search_form.uf.data)

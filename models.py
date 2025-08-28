@@ -26,6 +26,9 @@ class Equipment(db.Model):
     __tablename__ = 'equipment'
     
     id = db.Column(db.Integer, primary_key=True)
+    # Novo campo para identificar tipo de equipamento
+    tipo_equipamento = db.Column(db.String(20), nullable=False, default='notebook')  # 'notebook' ou 'celular'
+    
     responsavel = db.Column(db.String(100), nullable=False)
     uf = db.Column(db.String(2), nullable=False)
     centro_custo_id = db.Column(db.Integer, db.ForeignKey('centro_custo.id'), nullable=False)
@@ -46,6 +49,11 @@ class Equipment(db.Model):
     antivirus = db.Column(db.Boolean, default=False)
     termo_assinado = db.Column(db.Boolean, default=False)
     milvus_funcionando = db.Column(db.Boolean, default=False)
+    
+    # Campos específicos para celulares
+    imei = db.Column(db.String(20), nullable=True)  # Identificador único do celular
+    linha_telefonica = db.Column(db.String(20), nullable=True)  # Número da linha (se houver chip)
+    sistema_operacional_celular = db.Column(db.String(20), nullable=True)  # Android/iOS (separado do campo de notebook)
     
     # Dates
     data_aquisicao = db.Column(db.Date, nullable=True)
@@ -184,6 +192,24 @@ class Equipment(db.Model):
             Equipment.status,
             func.count(Equipment.id).label('count')
         ).group_by(Equipment.status).order_by(func.count(Equipment.id).desc()).all()
+    
+    @staticmethod
+    def get_by_tipo():
+        """Get equipment count by type (notebook/celular)"""
+        return db.session.query(
+            Equipment.tipo_equipamento,
+            func.count(Equipment.id).label('count')
+        ).group_by(Equipment.tipo_equipamento).order_by(func.count(Equipment.id).desc()).all()
+    
+    @staticmethod
+    def get_celulares():
+        """Get all mobile devices"""
+        return Equipment.query.filter_by(tipo_equipamento='celular').order_by(Equipment.patrimonio).all()
+    
+    @staticmethod
+    def get_notebooks():
+        """Get all notebooks"""
+        return Equipment.query.filter_by(tipo_equipamento='notebook').order_by(Equipment.patrimonio).all()
     
     @staticmethod
     def get_by_segmento():

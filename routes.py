@@ -41,7 +41,8 @@ def equipment_list():
         request.args.get('status') or 
         request.args.get('cnpj') or 
         request.args.get('marca') or 
-        request.args.get('cc')
+        request.args.get('cc') or
+        request.args.get('tipo_equipamento')
     )
     
     if has_search_criteria:
@@ -143,6 +144,7 @@ def equipment_new():
             return render_template('equipment_form.html', form=form, title='Novo Equipamento')
         
         equipment = Equipment()
+        equipment.tipo_equipamento = form.tipo_equipamento.data
         equipment.responsavel = form.responsavel.data
         equipment.uf = form.uf.data
         equipment.centro_custo_id = form.centro_custo_id.data
@@ -168,6 +170,12 @@ def equipment_new():
         equipment.email = form.email.data
         equipment.link_termos = form.link_termos.data
         equipment.senha = form.senha.data
+        
+        # Campos específicos para celulares
+        if form.tipo_equipamento.data == 'celular':
+            equipment.imei = form.imei.data
+            equipment.linha_telefonica = form.linha_telefonica.data
+            equipment.sistema_operacional_celular = form.sistema_operacional_celular.data
         
         # Adicionar histórico de criação
         equipment.add_to_history(f"Equipamento criado por {form.responsavel.data}")
@@ -269,7 +277,17 @@ def equipment_edit(id):
         if equipment.senha != form.senha.data:
             changes.append(f"Senha: {'***' if equipment.senha else 'N/A'} → {'***' if form.senha.data else 'N/A'}")
         
+        # Verificar mudanças nos campos específicos de celulares
+        if form.tipo_equipamento.data == 'celular':
+            if equipment.imei != form.imei.data:
+                changes.append(f"IMEI: {equipment.imei or 'N/A'} → {form.imei.data or 'N/A'}")
+            if equipment.linha_telefonica != form.linha_telefonica.data:
+                changes.append(f"Linha Telefônica: {equipment.linha_telefonica or 'N/A'} → {form.linha_telefonica.data or 'N/A'}")
+            if equipment.sistema_operacional_celular != form.sistema_operacional_celular.data:
+                changes.append(f"Sistema Operacional Celular: {equipment.sistema_operacional_celular or 'N/A'} → {form.sistema_operacional_celular.data or 'N/A'}")
+        
         # Update equipment fields
+        equipment.tipo_equipamento = form.tipo_equipamento.data
         equipment.responsavel = form.responsavel.data
         equipment.uf = form.uf.data
         equipment.centro_custo_id = form.centro_custo_id.data
@@ -295,6 +313,17 @@ def equipment_edit(id):
         equipment.email = form.email.data
         equipment.link_termos = form.link_termos.data
         equipment.senha = form.senha.data
+        
+        # Atualizar campos específicos para celulares
+        if form.tipo_equipamento.data == 'celular':
+            equipment.imei = form.imei.data
+            equipment.linha_telefonica = form.linha_telefonica.data
+            equipment.sistema_operacional_celular = form.sistema_operacional_celular.data
+        else:
+            # Limpar campos de celular se mudou para notebook
+            equipment.imei = None
+            equipment.linha_telefonica = None
+            equipment.sistema_operacional_celular = None
         
         # Update cc field when centro_custo_id changes
         if equipment.centro_custo_id:

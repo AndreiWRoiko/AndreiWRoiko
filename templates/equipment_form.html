@@ -64,6 +64,16 @@
                         </div>
                         <div class="card-body">
                             <div class="row">
+                                <!-- Campo Tipo de Equipamento - primeiro campo -->
+                                <div class="col-md-12 mb-3">
+                                    {{ form.tipo_equipamento.label(class="form-label") }}
+                                    {{ form.tipo_equipamento(class="form-control" + (" is-invalid" if form.tipo_equipamento.errors else ""), id="tipo_equipamento") }}
+                                    {% if form.tipo_equipamento.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.tipo_equipamento.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
                                 <div class="col-md-6 mb-3">
                                     {{ form.responsavel.label(class="form-label") }}
                                     {{ form.responsavel(class="form-control" + (" is-invalid" if form.responsavel.errors else "")) }}
@@ -175,6 +185,43 @@
                                     {{ form.data_baixa(class="form-control") }}
                                 </div>
                             </div>
+                            
+                            <!-- Campos específicos para celulares -->
+                            <div id="campos-celular" class="celular-fields" style="display: none;">
+                                <hr class="my-4">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-mobile-alt me-2"></i>Informações Específicas - Celular
+                                </h6>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        {{ form.imei.label(class="form-label") }}
+                                        {{ form.imei(class="form-control" + (" is-invalid" if form.imei.errors else "")) }}
+                                        {% if form.imei.errors %}
+                                            <div class="invalid-feedback">
+                                                {% for error in form.imei.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        {{ form.linha_telefonica.label(class="form-label") }}
+                                        {{ form.linha_telefonica(class="form-control" + (" is-invalid" if form.linha_telefonica.errors else "")) }}
+                                        {% if form.linha_telefonica.errors %}
+                                            <div class="invalid-feedback">
+                                                {% for error in form.linha_telefonica.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        {{ form.sistema_operacional_celular.label(class="form-label") }}
+                                        {{ form.sistema_operacional_celular(class="form-control" + (" is-invalid" if form.sistema_operacional_celular.errors else "")) }}
+                                        {% if form.sistema_operacional_celular.errors %}
+                                            <div class="invalid-feedback">
+                                                {% for error in form.sistema_operacional_celular.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -204,7 +251,7 @@
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-6 mb-3" id="notebook-so">
                                     {{ form.sistema_operacional.label(class="form-label") }}
                                     {{ form.sistema_operacional(class="form-select") }}
                                 </div>
@@ -372,6 +419,40 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+// Controlar exibição de campos específicos por tipo de equipamento
+document.addEventListener('DOMContentLoaded', function() {
+    const tipoSelect = document.getElementById('tipo_equipamento');
+    const camposCelular = document.getElementById('campos-celular');
+    const notebookSO = document.getElementById('notebook-so');
+    
+    function toggleCamposPorTipo() {
+        const tipoSelecionado = tipoSelect.value;
+        
+        if (tipoSelecionado === 'celular') {
+            // Mostrar campos específicos de celular
+            camposCelular.style.display = 'block';
+            // Ocultar campo SO de notebook na aba specs
+            if (notebookSO) {
+                notebookSO.style.display = 'none';
+            }
+        } else {
+            // Ocultar campos específicos de celular
+            camposCelular.style.display = 'none';
+            // Mostrar campo SO de notebook na aba specs
+            if (notebookSO) {
+                notebookSO.style.display = 'block';
+            }
+        }
+    }
+    
+    // Executar na inicialização
+    toggleCamposPorTipo();
+    
+    // Executar quando o tipo mudar
+    tipoSelect.addEventListener('change', toggleCamposPorTipo);
+});
+</script>
 <script>
     // Format phone field
     const telefoneField = document.getElementById('telefone');

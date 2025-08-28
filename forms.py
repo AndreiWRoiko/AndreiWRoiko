@@ -34,6 +34,12 @@ def coerce_int_or_empty(value):
         return ''
 
 class EquipmentForm(FlaskForm):
+    # Campo para selecionar tipo de equipamento
+    tipo_equipamento = SelectField('Tipo de Equipamento', choices=[
+        ('notebook', 'Notebook'),
+        ('celular', 'Celular')
+    ], validators=[DataRequired()])
+    
     responsavel = StringField('Responsável', validators=[DataRequired()])
     uf = SelectField('UF', choices=[
         ('AC', 'AC'), ('AL', 'AL'), ('AP', 'AP'), ('AM', 'AM'), ('BA', 'BA'),
@@ -128,9 +134,26 @@ class EquipmentForm(FlaskForm):
     # Campo senha
     senha = StringField('Senha', validators=[Optional()], 
                        render_kw={'placeholder': 'Digite a senha'})
+    
+    # Campos específicos para celulares
+    imei = StringField('IMEI', validators=[Optional(), Length(max=20)], 
+                      render_kw={"placeholder": "Ex: 123456789012345"})
+    linha_telefonica = StringField('Linha Telefônica', validators=[Optional(), Length(max=20)],
+                                  render_kw={"placeholder": "Ex: (11) 99999-9999"})
+    sistema_operacional_celular = SelectField('Sistema Operacional (Celular)', choices=[
+        ('', 'Selecione...'),
+        ('Android', 'Android'),
+        ('iOS', 'iOS')
+    ], validators=[Optional()])
 
 class SearchForm(FlaskForm):
     search_term = StringField('Buscar')
+    # Filtro por tipo de equipamento
+    tipo_equipamento = SelectField('Tipo', choices=[
+        ('', 'Todos'),
+        ('notebook', 'Notebook'),
+        ('celular', 'Celular')
+    ])
     uf = SelectField('UF', choices=[('', 'Todos')] + [
         ('AC', 'AC'), ('AL', 'AL'), ('AP', 'AP'), ('AM', 'AM'), ('BA', 'BA'),
         ('CE', 'CE'), ('DF', 'DF'), ('ES', 'ES'), ('GO', 'GO'), ('MA', 'MA'),
