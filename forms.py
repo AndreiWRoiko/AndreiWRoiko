@@ -1,8 +1,35 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired, FileAllowed
-from wtforms import StringField, FloatField, SelectField, BooleanField, DateField, TextAreaField, FieldList, FormField, HiddenField, PasswordField
-from wtforms.validators import DataRequired, Email, Optional, NumberRange, URL, Length
+from wtforms import StringField, FloatField, SelectField, BooleanField, DateField, TextAreaField, FieldList, FormField, HiddenField, PasswordField, SubmitField
+from wtforms.validators import DataRequired, Email, Optional, NumberRange, URL, Length, EqualTo, ValidationError
 from datetime import date
+
+class LoginForm(FlaskForm):
+    username = StringField('Usuário', validators=[DataRequired(), Length(min=3, max=64)])
+    password = PasswordField('Senha', validators=[DataRequired()])
+    remember_me = BooleanField('Lembrar de mim')
+    submit = SubmitField('Entrar')
+
+class RegisterForm(FlaskForm):
+    username = StringField('Usuário', validators=[DataRequired(), Length(min=3, max=64)])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    first_name = StringField('Nome', validators=[Length(max=100)])
+    last_name = StringField('Sobrenome', validators=[Length(max=100)])
+    password = PasswordField('Senha', validators=[DataRequired(), Length(min=6)])
+    password2 = PasswordField('Confirmar Senha', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Registrar')
+    
+    def validate_username(self, username):
+        from models import User
+        user = User.query.filter_by(username=username.data).first()
+        if user:
+            raise ValidationError('Nome de usuário já existe. Escolha outro.')
+    
+    def validate_email(self, email):
+        from models import User
+        user = User.query.filter_by(email=email.data).first()
+        if user:
+            raise ValidationError('Email já cadastrado. Use outro email.')
 
 def get_centro_custo_choices():
     """Função para carregar dinamicamente os centros de custo"""
