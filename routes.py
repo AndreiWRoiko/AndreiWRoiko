@@ -663,6 +663,7 @@ def kanban_task_edit(task_id):
     })
 
 @app.route('/planner/task/<int:task_id>/delete', methods=['DELETE'])
+@require_login
 def kanban_task_delete(task_id):
     """Delete kanban task"""
     task = KanbanTask.query.get_or_404(task_id)
@@ -672,6 +673,7 @@ def kanban_task_delete(task_id):
     return jsonify({'success': True})
 
 @app.route('/planner/task/<int:task_id>/move', methods=['PUT'])
+@require_login
 def kanban_task_move(task_id):
     """Move task to different list and position"""
     task = KanbanTask.query.get_or_404(task_id)
@@ -690,6 +692,7 @@ def kanban_task_move(task_id):
     return jsonify({'success': False, 'error': 'Invalid data'})
 
 @app.route('/planner/task/<int:task_id>/checklist', methods=['GET'])
+@require_login
 def get_task_checklist(task_id):
     """Get checklist items for a task"""
     task = KanbanTask.query.get_or_404(task_id)
@@ -710,6 +713,7 @@ def get_task_checklist(task_id):
     })
 
 @app.route('/planner/task/<int:task_id>/checklist/add', methods=['POST'])
+@require_login
 def add_checklist_item(task_id):
     """Add new checklist item to task"""
     task = KanbanTask.query.get_or_404(task_id)

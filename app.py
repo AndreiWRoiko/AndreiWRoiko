@@ -34,6 +34,9 @@ app.config['WTF_CSRF_ENABLED'] = False
 # Initialize database
 db = SQLAlchemy(app, model_class=Base)
 
+# Import routes after app creation to avoid circular imports
+from routes import *
+
 # Create tables - Need to put this in module-level to make it work with Gunicorn.
 with app.app_context():
     import models  # noqa: F401
