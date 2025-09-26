@@ -1,31 +1,47 @@
-from flask import render_template, request, redirect, url_for, flash, jsonify
+from flask import render_template, request, redirect, url_for, flash, jsonify, session
 from app import app, db
-from models import Equipment, CentroCusto, KanbanList, KanbanTask, KanbanChecklist
+from models import Equipment, CentroCusto, KanbanList, KanbanTask, KanbanChecklist, User
 from forms import EquipmentForm, SearchForm, ImportForm, CentroCustoForm, KanbanListForm, KanbanTaskForm, get_centro_custo_choices
 from utils import export_to_excel, export_to_pdf, create_uf_chart, create_value_chart, filter_equipment, import_from_excel
+from replit_auth import require_login, make_replit_blueprint
+from flask_login import current_user
 import json
 import os
 from werkzeug.utils import secure_filename
 
+# Register authentication blueprint
+app.register_blueprint(make_replit_blueprint(), url_prefix="/auth")
+
+# Make session permanent
+@app.before_request
+def make_session_permanent():
+    session.permanent = True
+
 @app.route('/')
-def dashboard():
-    """Main dashboard route"""
-    stats = Equipment.get_dashboard_stats()
-    
-    # Convert SQLAlchemy Row objects to simple lists
-    uf_data = [[item[0], item[1]] for item in Equipment.get_by_uf()]
-    fornecedor_data = [[item[0], item[1]] for item in Equipment.get_by_fornecedor()]
-    status_data = [[item[0], item[1]] for item in Equipment.get_by_status()]
-    segmentos_data = [[item[0], item[1]] for item in Equipment.get_by_segmento()]
-    
-    return render_template('dashboard.html', 
-                         stats=stats, 
-                         uf_data=uf_data,
-                         fornecedor_data=fornecedor_data,
-                         status_data=status_data,
-                         segmentos_data=segmentos_data)
+def index():
+    """Main route - show landing page for non-authenticated users, dashboard for authenticated users"""
+    if current_user.is_authenticated:
+        # User is logged in, show the dashboard
+        stats = Equipment.get_dashboard_stats()
+        
+        # Convert SQLAlchemy Row objects to simple lists
+        uf_data = [[item[0], item[1]] for item in Equipment.get_by_uf()]
+        fornecedor_data = [[item[0], item[1]] for item in Equipment.get_by_fornecedor()]
+        status_data = [[item[0], item[1]] for item in Equipment.get_by_status()]
+        segmentos_data = [[item[0], item[1]] for item in Equipment.get_by_segmento()]
+        
+        return render_template('dashboard.html', 
+                             stats=stats, 
+                             uf_data=uf_data,
+                             fornecedor_data=fornecedor_data,
+                             status_data=status_data,
+                             segmentos_data=segmentos_data)
+    else:
+        # User not logged in, show landing page
+        return render_template('landing.html')
 
 @app.route('/equipment')
+@require_login
 def equipment_list():
     """Equipment list with search and filtering"""
     search_form = SearchForm(request.args)
@@ -86,6 +102,7 @@ def equipment_list():
                          pagination=pagination)
 
 @app.route('/centro-custo/new', methods=['POST'])
+@require_login
 def centro_custo_new():
     """Create new cost center via AJAX"""
     form = CentroCustoForm()
@@ -120,6 +137,7 @@ def centro_custo_new():
     })
 
 @app.route('/centro-custo/list')
+@require_login
 def centro_custo_list():
     """Get list of cost centers for AJAX"""
     centros = CentroCusto.get_all_active()
@@ -130,6 +148,7 @@ def centro_custo_list():
     } for c in centros])
 
 @app.route('/equipment/new', methods=['GET', 'POST'])
+@require_login
 def equipment_new():
     """Create new equipment"""
     form = EquipmentForm()
@@ -194,12 +213,14 @@ def equipment_new():
     return render_template('equipment_form.html', form=form, title='Novo Equipamento')
 
 @app.route('/equipment/<int:id>')
+@require_login
 def equipment_detail(id):
     """Equipment detail view"""
     equipment = Equipment.query.get_or_404(id)
     return render_template('equipment_detail.html', equipment=equipment)
 
 @app.route('/equipment/<int:id>/edit', methods=['GET', 'POST'])
+@require_login
 def equipment_edit(id):
     """Edit equipment"""
     equipment = Equipment.query.get_or_404(id)
@@ -342,6 +363,7 @@ def equipment_edit(id):
     return render_template('equipment_form.html', form=form, title='Editar Equipamento', equipment=equipment)
 
 @app.route('/equipment/<int:id>/delete', methods=['POST'])
+@require_login
 def equipment_delete(id):
     """Delete equipment"""
     equipment = Equipment.query.get_or_404(id)
@@ -356,6 +378,7 @@ def equipment_delete(id):
     return redirect(url_for('equipment_list'))
 
 @app.route('/export/excel')
+@require_login
 def export_excel():
     """Export equipment to Excel"""
     search_form = SearchForm(request.args)
@@ -367,6 +390,7 @@ def export_excel():
     return export_to_excel(equipment)
 
 @app.route('/export/pdf')
+@require_login
 def export_pdf():
     """Export equipment to PDF"""
     search_form = SearchForm(request.args)
@@ -378,6 +402,7 @@ def export_pdf():
     return export_to_pdf(equipment)
 
 @app.route('/import', methods=['GET', 'POST'])
+@require_login
 def import_equipment():
     """Import equipment from Excel file"""
     form = ImportForm()
@@ -426,6 +451,7 @@ def import_equipment():
     return render_template('import_form.html', form=form)
 
 @app.route('/download-template')
+@require_login
 def download_template():
     """Download Excel template for import"""
     # Create a sample equipment list with proper headers for template
@@ -457,6 +483,7 @@ def download_template():
     return export_to_excel(sample_data)
 
 @app.route('/history')
+@require_login
 def history_log():
     """Display user selection for history by profile"""
     # Get all equipment that have history
@@ -476,6 +503,7 @@ def history_log():
                          show_profile_selection=True)
 
 @app.route('/history/profile/<profile_name>')
+@require_login
 def history_by_profile(profile_name):
     """Display equipment modification history filtered by profile/responsável"""
     # Get all equipment for this profile that have history
@@ -510,12 +538,14 @@ def internal_error(error):
 
 # Kanban/Planner Routes
 @app.route('/planner')
+@require_login
 def planner():
     """Main planner/kanban board"""
     lists = KanbanList.get_all_ordered()
     return render_template('planner.html', lists=lists)
 
 @app.route('/planner/list/new', methods=['POST'])
+@require_login
 def kanban_list_new():
     """Create new kanban list"""
     form = KanbanListForm()
@@ -544,6 +574,7 @@ def kanban_list_new():
     return jsonify({'success': False, 'errors': form.errors})
 
 @app.route('/planner/list/<int:list_id>/delete', methods=['DELETE'])
+@require_login
 def kanban_list_delete(list_id):
     """Delete kanban list"""
     kanban_list = KanbanList.query.get_or_404(list_id)
@@ -553,6 +584,7 @@ def kanban_list_delete(list_id):
     return jsonify({'success': True})
 
 @app.route('/planner/task/new', methods=['POST'])
+@require_login
 def kanban_task_new():
     """Create new kanban task"""
     form = KanbanTaskForm()

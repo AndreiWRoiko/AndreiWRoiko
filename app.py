@@ -11,18 +11,17 @@ logging.basicConfig(level=logging.DEBUG)
 class Base(DeclarativeBase):
     pass
 
-db = SQLAlchemy(model_class=Base)
-
-# Create the app
+# Initialize Flask app - Based on python_log_in_with_replit integration
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-production")
-app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+app.secret_key = os.environ.get("SESSION_SECRET")
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1) # needed for url_for to generate with https
 
-# Configure the database
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
+# Database configuration - Using PostgreSQL for Replit Auth
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    'pool_pre_ping': True,
     "pool_recycle": 300,
-    "pool_pre_ping": True,
 }
 
 # Configure file uploads
@@ -32,16 +31,14 @@ app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'uploads')
 # Configure WTF CSRF - Disable for now to avoid issues
 app.config['WTF_CSRF_ENABLED'] = False
 
-# Initialize the app with the extension
-db.init_app(app)
+# Initialize database
+db = SQLAlchemy(app, model_class=Base)
 
-# Import routes after app creation to avoid circular imports
-from routes import *
-
+# Create tables - Need to put this in module-level to make it work with Gunicorn.
 with app.app_context():
-    # Import models to ensure tables are created
-    import models
+    import models  # noqa: F401
     db.create_all()
+    logging.info("Database tables created")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

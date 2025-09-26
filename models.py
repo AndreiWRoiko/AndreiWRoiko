@@ -1,6 +1,47 @@
 from app import db
 from datetime import datetime
-from sqlalchemy import func
+from sqlalchemy import func, UniqueConstraint
+from flask_dance.consumer.storage.sqla import OAuthConsumerMixin
+from flask_login import UserMixin
+
+# (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
+class User(UserMixin, db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.String, primary_key=True)
+    email = db.Column(db.String, unique=True, nullable=True)
+    first_name = db.Column(db.String, nullable=True)
+    last_name = db.Column(db.String, nullable=True)
+    profile_image_url = db.Column(db.String, nullable=True)
+
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime,
+                           default=datetime.now,
+                           onupdate=datetime.now)
+    
+    @property
+    def display_name(self):
+        """Return display name for the user"""
+        if self.first_name and self.last_name:
+            return f"{self.first_name} {self.last_name}"
+        elif self.first_name:
+            return self.first_name
+        elif self.email:
+            return self.email
+        else:
+            return f"User {self.id}"
+
+# (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
+class OAuth(OAuthConsumerMixin, db.Model):
+    user_id = db.Column(db.String, db.ForeignKey(User.id))
+    browser_session_key = db.Column(db.String, nullable=False)
+    user = db.relationship(User)
+
+    __table_args__ = (UniqueConstraint(
+        'user_id',
+        'browser_session_key',
+        'provider',
+        name='uq_user_browser_session_key_provider',
+    ),)
 
 class CentroCusto(db.Model):
     __tablename__ = 'centro_custo'
@@ -75,12 +116,23 @@ class Equipment(db.Model):
     def __repr__(self):
         return f'<Equipment {self.patrimonio}: {self.modelo}>'
     
-    def add_to_history(self, modificacao):
-        """Adiciona uma modificação ao histórico"""
+    def add_to_history(self, modificacao, user=None):
+        """Adiciona uma modificação ao histórico com informação do usuário"""
         import json
         from datetime import datetime
+        from flask_login import current_user
+        
         timestamp = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-        entry = f"[{timestamp}] {modificacao}"
+        
+        # Get user info - prefer parameter, then current_user, then 'Sistema'
+        if user:
+            user_info = user.display_name if hasattr(user, 'display_name') else str(user)
+        elif current_user.is_authenticated:
+            user_info = current_user.display_name
+        else:
+            user_info = "Sistema"
+        
+        entry = f"[{timestamp}] {user_info}: {modificacao}"
         
         if self.historico_modificacoes:
             try:
