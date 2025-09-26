@@ -625,6 +625,7 @@ def kanban_task_new():
     return jsonify({'success': False, 'errors': form.errors})
 
 @app.route('/planner/task/<int:task_id>/edit', methods=['PUT'])
+@require_login
 def kanban_task_edit(task_id):
     """Edit kanban task"""
     task = KanbanTask.query.get_or_404(task_id)
