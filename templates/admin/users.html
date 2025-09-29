@@ -18,12 +18,12 @@
     <div class="card-body">
         <form method="GET" class="row g-3">
             <div class="col-md-3">
-                {{ filter_form.role.label(class="form-label") }}
-                {{ filter_form.role(class="form-select") }}
+                {{ filter_form.role_filter.label(class="form-label") }}
+                {{ filter_form.role_filter(class="form-select") }}
             </div>
             <div class="col-md-3">
-                {{ filter_form.status.label(class="form-label") }}
-                {{ filter_form.status(class="form-select") }}
+                {{ filter_form.status_filter.label(class="form-label") }}
+                {{ filter_form.status_filter(class="form-select") }}
             </div>
             <div class="col-md-4">
                 {{ filter_form.search.label(class="form-label") }}
