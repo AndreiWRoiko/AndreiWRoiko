@@ -21,10 +21,13 @@ class Base(DeclarativeBase):
 # ==========================
 app = Flask(__name__)
 
-# Chave secreta para sessões - obrigatória
+# Chave secreta para sessões - com fallback para desenvolvimento
 app.secret_key = os.environ.get("SESSION_SECRET")
 if not app.secret_key:
-    raise RuntimeError("SESSION_SECRET environment variable is required")
+    # Fallback para desenvolvimento - gera uma chave temporária
+    import secrets
+    app.secret_key = secrets.token_hex(32)
+    logging.warning("⚠️  Usando chave secreta temporária para desenvolvimento. Configure SESSION_SECRET para produção!")
 
 # Corrige geração de URLs atrás de proxies (necessário em produção com HTTPS)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
@@ -34,13 +37,20 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 # ==========================
 database_url = os.environ.get("DATABASE_URL")
 if not database_url:
-    raise RuntimeError("DATABASE_URL environment variable is required")
-app.config["SQLALCHEMY_DATABASE_URI"] = database_url
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_pre_ping": True,
-    "pool_recycle": 300,
-}
+    # Fallback para SQLite em desenvolvimento
+    database_url = "sqlite:///instance/app.db"
+    logging.warning("⚠️  Usando SQLite para desenvolvimento. Configure DATABASE_URL para PostgreSQL em produção!")
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    # SQLite não precisa de configurações de pool
+else:
+    # Configurações otimizadas para PostgreSQL
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        "pool_pre_ping": True,
+        "pool_recycle": 300,
+    }
 
 # ==========================
 # Configuração de Uploads
