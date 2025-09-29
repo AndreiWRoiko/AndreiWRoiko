@@ -134,7 +134,7 @@ def log_user_access(route_name, action=None):
 def inject_user_permissions():
     """Injeta permissões do usuário nos templates"""
     if current_user.is_authenticated:
-        return {
+        context = {
             'user_permissions': {
                 'can_view': current_user.has_permission('view'),
                 'can_create': current_user.has_permission('create'),
@@ -150,4 +150,11 @@ def inject_user_permissions():
                 'user_status': current_user.status
             }
         }
+        
+        # Adicionar contagem de usuários pendentes para admins
+        if current_user.role == 'ADM':
+            from models import User
+            context['pending_users_count'] = User.query.filter_by(status='Pendente').count()
+        
+        return context
     return {}
