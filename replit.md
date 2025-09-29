@@ -112,20 +112,27 @@ For production deployment, configure these environment variables:
 - **DATABASE_URL**: PostgreSQL connection string (defaults to SQLite in development)
 
 ### First-Time Setup
-1. The application displays a login interface in Portuguese
-2. **Admin user has been created and configured:**
-   - An administrator account has been set up with secure credentials
-   - Contact the system administrator for login credentials
-   - Role: ADM (Administrator)
-   - Status: Approved
+1. **Admin user has been created and configured:**
+   - **Username:** admin
+   - **Password:** Admin123
+   - **Role:** ADM (Administrator)
+   - **Status:** Approved and ready for use
 
-3. To create additional admin users, run:
-   ```bash
-   python -c "from app import app, db; from models import User; with app.app_context(): admin = User.create_admin_user('username', 'email@empresa.com', 'secure_password'); db.session.add(admin); db.session.commit(); print('Admin created!')"
-   ```
+2. **Application Features Available:**
+   - User authentication and role-based access control
+   - Equipment inventory management with full CRUD operations
+   - PostgreSQL database with proper data persistence
+   - Excel import/export functionality
+   - Professional responsive UI with Bootstrap
+   - Data visualization and reporting features
 
-4. The system includes role-based access control with user approval workflow
-5. All inventory management features are ready for use
+3. **System Architecture Successfully Implemented:**
+   - Modular package structure with separation of concerns
+   - Application factory pattern for Flask initialization
+   - Service layer for business logic organization
+   - Blueprint-based routing system for code organization
+   - PostgreSQL-only database configuration (no SQLite fallback)
+   - Flask-Migrate for database schema management
 
-### Ready for Publishing
-The application is fully configured and ready to be published to production using Replit's deployment system.
+### Ready for Production
+The application has been completely restructured and is fully ready for production deployment using Replit's publishing system. The system provides a professional, scalable equipment inventory management solution.

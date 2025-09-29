@@ -25,7 +25,7 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('index') }}">
+            <a class="navbar-brand" href="{{ url_for('main.index') }}">
                 <i class="fas fa-desktop me-2"></i>
                 Sistema de Inventário
             </a>
@@ -38,35 +38,35 @@
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" 
-                           href="{{ url_for('index') }}">
+                           href="{{ url_for('main.index') }}">
                             <i class="fas fa-chart-line me-1"></i>Dashboard
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.endpoint == 'equipment_list' %}active{% endif %}" 
-                           href="{{ url_for('equipment_list') }}">
+                           href="{{ url_for('inventory.equipment_list') }}">
                             <i class="fas fa-list me-1"></i>Equipamentos
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('equipment_new') }}">
+                        <a class="nav-link" href="{{ url_for('inventory.equipment_new') }}">
                             <i class="fas fa-plus me-1"></i>Novo Equipamento
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('import_equipment') }}">
+                        <a class="nav-link" href="{{ url_for('inventory.import_equipment') }}">
                             <i class="fas fa-file-import me-1"></i>Importar Dados
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.endpoint == 'history_log' %}active{% endif %}" 
-                           href="{{ url_for('history_log') }}">
+                           href="{{ url_for('inventory.history_log') }}">
                             <i class="fas fa-history me-1"></i>Histórico
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.endpoint == 'planner' %}active{% endif %}" 
-                           href="{{ url_for('planner') }}">
+                           href="{{ url_for('inventory.planner') }}">
                             <i class="fas fa-columns me-1"></i>Planner
                         </a>
                     </li>
