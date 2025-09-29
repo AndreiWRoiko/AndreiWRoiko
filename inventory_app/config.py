@@ -4,6 +4,7 @@ Configuração da aplicação - Flask Equipment Inventory System
 import os
 import secrets
 from typing import Type
+from db import get_database_config
 
 
 class Config:
@@ -13,21 +14,6 @@ class Config:
     SECRET_KEY = os.environ.get("SESSION_SECRET")
     if not SECRET_KEY:
         SECRET_KEY = secrets.token_hex(32)
-    
-    # Base de dados - PostgreSQL obrigatório
-    DATABASE_URL = os.environ.get("DATABASE_URL")
-    if not DATABASE_URL:
-        raise EnvironmentError("DATABASE_URL é obrigatório. Configure a conexão PostgreSQL.")
-    
-    SQLALCHEMY_DATABASE_URI = DATABASE_URL
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SQLALCHEMY_ENGINE_OPTIONS = {
-        "pool_pre_ping": True,
-        "pool_recycle": 300,
-        "pool_timeout": 20,
-        "max_overflow": 10,
-        "pool_size": 5,
-    }
     
     # Configuração de uploads
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
@@ -42,6 +28,21 @@ class Config:
     SESSION_COOKIE_SECURE = os.environ.get("FLASK_ENV") == "production"
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
+
+# Configurar o banco de dados usando o arquivo db.py
+try:
+    db_environment = os.environ.get('DB_ENVIRONMENT')
+    _db_config = get_database_config(db_environment)
+    Config.SQLALCHEMY_DATABASE_URI = _db_config['DATABASE_URL']
+    Config.SQLALCHEMY_TRACK_MODIFICATIONS = False
+    Config.SQLALCHEMY_ENGINE_OPTIONS = _db_config['SQLALCHEMY_ENGINE_OPTIONS']
+except Exception as e:
+    # Fallback para configuração via variáveis de ambiente
+    import logging
+    logging.warning(f"Erro ao carregar config do db.py: {e}. Usando fallback.")
+    Config.SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    Config.SQLALCHEMY_TRACK_MODIFICATIONS = False
+    Config.SQLALCHEMY_ENGINE_OPTIONS = {}
 
 
 class DevelopmentConfig(Config):
