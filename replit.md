@@ -74,5 +74,30 @@ Preferred communication style: Simple, everyday language.
 ### Deployment Infrastructure
 - **Environment Variables**: Configuration via SESSION_SECRET and DATABASE_URL
 - **WSGI Compatibility**: Standard WSGI application structure
+- **Production Server**: Gunicorn WSGI server with autoscaling deployment configuration
 - **Development Server**: Built-in Flask development server with debugging
 - **Static File Serving**: Flask static file handling for CSS and JavaScript assets
+- **Replit Integration**: Fully configured for Replit environment with PostgreSQL database
+
+## Recent Changes (September 29, 2025)
+
+### Replit Environment Setup
+- Successfully imported and configured Flask application for Replit environment
+- Created PostgreSQL database using Replit's built-in database service
+- Installed all required Python dependencies via uv package manager
+- Configured workflow to run on port 5000 with webview output for user interface
+- Set up deployment configuration for autoscale target using Gunicorn
+- Application is now fully functional and accessible via web interface
+
+### Configuration Details
+- **Server**: Gunicorn with reloading enabled for development
+- **Database**: PostgreSQL with connection pooling and health checks
+- **Host Configuration**: Bound to 0.0.0.0:5000 to allow proxy access
+- **Environment Secrets**: SESSION_SECRET and DATABASE_URL properly configured
+- **Workflow Status**: Running successfully on port 5000
+
+### Next Steps for Users
+- The application displays a login interface in Portuguese
+- Users need to create an administrator account to begin using the system
+- The system includes role-based access control with user approval workflow
+- All inventory management features are ready for use
