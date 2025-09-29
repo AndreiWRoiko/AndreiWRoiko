@@ -61,7 +61,7 @@ app.config["UPLOAD_FOLDER"] = os.path.join(app.root_path, "uploads")
 # ==========================
 # Configuração de CSRF
 # ==========================
-app.config["WTF_CSRF_ENABLED"] = False  # Pode ativar futuramente
+app.config["WTF_CSRF_ENABLED"] = True  # Ativado para segurança
 
 # ==========================
 # Inicialização do Banco

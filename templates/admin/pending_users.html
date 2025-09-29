@@ -105,7 +105,9 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <form id="rejectUserForm" method="post">
+                {% if csrf_token %}
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                {% endif %}
                 <input type="hidden" id="reject_user_id" name="user_id" value="">
                 <input type="hidden" name="action" value="reject">
                 
