@@ -246,3 +246,97 @@ class KanbanTaskForm(FlaskForm):
     ], default='medium')
     due_date = DateField('Data de Vencimento', validators=[Optional()])
     list_id = SelectField('Lista', coerce=int)
+
+# =============================================================================
+# FORMULÁRIOS ADMINISTRATIVOS - Sistema de Controle de Acesso
+# =============================================================================
+
+class UserApprovalForm(FlaskForm):
+    """Formulário para aprovação/recusa de usuários"""
+    user_id = HiddenField('User ID', validators=[DataRequired()])
+    action = HiddenField('Action', validators=[DataRequired()])  # 'approve' ou 'reject'
+    rejection_reason = TextAreaField('Motivo da Recusa', validators=[Optional(), Length(max=500)])
+    role = SelectField('Nível de Acesso', choices=[
+        ('Controladoria', 'Controladoria - Apenas Visualização'),
+        ('Suporte', 'Suporte - Criação e Edição'),
+        ('ADM', 'Administrador - Acesso Total')
+    ], default='Controladoria')
+    submit = SubmitField('Confirmar')
+
+class AdminUserCreationForm(FlaskForm):
+    """Formulário para criação de usuários por administradores"""
+    username = StringField('Usuário', validators=[DataRequired(), Length(min=3, max=64)])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    first_name = StringField('Nome', validators=[Optional(), Length(max=100)])
+    last_name = StringField('Sobrenome', validators=[Optional(), Length(max=100)])
+    password = PasswordField('Senha', validators=[DataRequired(), Length(min=6)])
+    password2 = PasswordField('Confirmar Senha', validators=[DataRequired(), EqualTo('password')])
+    role = SelectField('Nível de Acesso', choices=[
+        ('Controladoria', 'Controladoria - Apenas Visualização'),
+        ('Suporte', 'Suporte - Criação e Edição'),
+        ('ADM', 'Administrador - Acesso Total')
+    ], validators=[DataRequired()])
+    auto_approve = BooleanField('Aprovar Automaticamente', default=True)
+    submit = SubmitField('Criar Usuário')
+    
+    def validate_username(self, username):
+        from models import User
+        user = User.query.filter_by(username=username.data).first()
+        if user:
+            raise ValidationError('Nome de usuário já existe. Escolha outro.')
+    
+    def validate_email(self, email):
+        from models import User
+        user = User.query.filter_by(email=email.data).first()
+        if user:
+            raise ValidationError('Email já cadastrado. Use outro email.')
+
+class UserEditForm(FlaskForm):
+    """Formulário para edição de usuários existentes"""
+    user_id = HiddenField('User ID', validators=[DataRequired()])
+    username = StringField('Usuário', validators=[DataRequired(), Length(min=3, max=64)])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    first_name = StringField('Nome', validators=[Optional(), Length(max=100)])
+    last_name = StringField('Sobrenome', validators=[Optional(), Length(max=100)])
+    role = SelectField('Nível de Acesso', choices=[
+        ('Controladoria', 'Controladoria - Apenas Visualização'),
+        ('Suporte', 'Suporte - Criação e Edição'),
+        ('ADM', 'Administrador - Acesso Total')
+    ], validators=[DataRequired()])
+    is_active = BooleanField('Usuário Ativo')
+    change_password = BooleanField('Alterar Senha')
+    new_password = PasswordField('Nova Senha', validators=[Optional(), Length(min=6)])
+    new_password2 = PasswordField('Confirmar Nova Senha', validators=[Optional(), EqualTo('new_password')])
+    submit = SubmitField('Salvar Alterações')
+
+class AdminFilterForm(FlaskForm):
+    """Formulário para filtros da área administrativa"""
+    status_filter = SelectField('Status', choices=[
+        ('', 'Todos'),
+        ('Pendente', 'Pendente'),
+        ('Aprovado', 'Aprovado'),
+        ('Recusado', 'Recusado')
+    ], default='')
+    role_filter = SelectField('Nível de Acesso', choices=[
+        ('', 'Todos'),
+        ('ADM', 'Administrador'),
+        ('Suporte', 'Suporte'),
+        ('Controladoria', 'Controladoria'),
+        ('Recusado', 'Recusado')
+    ], default='')
+    search = StringField('Buscar', validators=[Optional()], render_kw={"placeholder": "Nome, usuário ou email..."})
+    submit = SubmitField('Filtrar')
+
+class BulkUserActionForm(FlaskForm):
+    """Formulário para ações em lote nos usuários"""
+    selected_users = FieldList(StringField(), min_entries=0)
+    bulk_action = SelectField('Ação', choices=[
+        ('', 'Selecione uma ação...'),
+        ('approve', 'Aprovar Selecionados'),
+        ('reject', 'Recusar Selecionados'),
+        ('activate', 'Ativar Selecionados'),
+        ('deactivate', 'Desativar Selecionados'),
+        ('delete_rejected', 'Excluir Recusados Selecionados')
+    ])
+    bulk_rejection_reason = TextAreaField('Motivo da Recusa (para ação em lote)', validators=[Optional(), Length(max=500)])
+    submit = SubmitField('Executar Ação')

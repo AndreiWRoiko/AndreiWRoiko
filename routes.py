@@ -2,13 +2,18 @@ from flask import render_template, request, redirect, url_for, flash, jsonify, s
 from urllib.parse import urlparse as url_parse
 from app import app, db
 from models import Equipment, CentroCusto, KanbanList, KanbanTask, KanbanChecklist, User
-from forms import EquipmentForm, SearchForm, ImportForm, CentroCustoForm, KanbanListForm, KanbanTaskForm, LoginForm, RegisterForm, get_centro_custo_choices
+from forms import (EquipmentForm, SearchForm, ImportForm, CentroCustoForm, KanbanListForm, KanbanTaskForm, 
+                   LoginForm, RegisterForm, get_centro_custo_choices,
+                   UserApprovalForm, AdminUserCreationForm, UserEditForm, AdminFilterForm, BulkUserActionForm)
 from utils import export_to_excel, export_to_pdf, create_uf_chart, create_value_chart, filter_equipment, import_from_excel
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+from auth_decorators import (requires_permission, requires_role, admin_required, support_or_admin_required, 
+                            approved_user_required, log_user_access, inject_user_permissions)
 from functools import wraps
 import json
 import os
 from werkzeug.utils import secure_filename
+from datetime import datetime, timedelta
 
 # Initialize Flask-Login
 login_manager = LoginManager()
@@ -21,45 +26,86 @@ login_manager.login_message_category = 'info'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# Make session permanent
+# Make session permanent and perform automatic cleanup
 @app.before_request
 def make_session_permanent():
     session.permanent = True
+    
+    # Executar limpeza automática de usuários recusados uma vez por dia
+    # (verificação baseada em cookie para evitar execução excessiva)
+    last_cleanup = session.get('last_cleanup_check')
+    today = datetime.now().strftime('%Y-%m-%d')
+    
+    if last_cleanup != today:
+        try:
+            # Limpeza automática de usuários recusados há mais de 30 dias
+            users_to_delete = User.get_rejected_users_for_cleanup()
+            if users_to_delete:
+                count = len(users_to_delete)
+                for user in users_to_delete:
+                    db.session.delete(user)
+                db.session.commit()
+                print(f"[CLEANUP] {count} usuários recusados foram removidos automaticamente")
+            
+            session['last_cleanup_check'] = today
+        except Exception as e:
+            print(f"[CLEANUP ERROR] Erro durante limpeza automática: {e}")
+            db.session.rollback()
 
 @app.route('/')
+@approved_user_required
 def index():
-    """Main route - show landing page for non-authenticated users, dashboard for authenticated users"""
-    if current_user.is_authenticated:
-        # User is logged in, show the dashboard
-        stats = Equipment.get_dashboard_stats()
-        
-        # Convert SQLAlchemy Row objects to simple lists
-        uf_data = [[item[0], item[1]] for item in Equipment.get_by_uf()]
-        fornecedor_data = [[item[0], item[1]] for item in Equipment.get_by_fornecedor()]
-        status_data = [[item[0], item[1]] for item in Equipment.get_by_status()]
-        segmentos_data = [[item[0], item[1]] for item in Equipment.get_by_segmento()]
-        
-        return render_template('dashboard.html', 
-                             stats=stats, 
-                             uf_data=uf_data,
-                             fornecedor_data=fornecedor_data,
-                             status_data=status_data,
-                             segmentos_data=segmentos_data)
-    else:
-        # User not logged in, show landing page
-        return redirect(url_for('login'))
+    """Main route - dashboard for approved users only"""
+    log_user_access('dashboard')
+    
+    # User is approved and logged in, show the dashboard
+    stats = Equipment.get_dashboard_stats()
+    
+    # Convert SQLAlchemy Row objects to simple lists
+    uf_data = [[item[0], item[1]] for item in Equipment.get_by_uf()]
+    fornecedor_data = [[item[0], item[1]] for item in Equipment.get_by_fornecedor()]
+    status_data = [[item[0], item[1]] for item in Equipment.get_by_status()]
+    segmentos_data = [[item[0], item[1]] for item in Equipment.get_by_segmento()]
+    
+    return render_template('dashboard.html', 
+                         stats=stats, 
+                         uf_data=uf_data,
+                         fornecedor_data=fornecedor_data,
+                         status_data=status_data,
+                         segmentos_data=segmentos_data)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    """Login page"""
+    """Login page with access control verification"""
     if current_user.is_authenticated:
+        if current_user.is_pending:
+            return redirect(url_for('pending_approval'))
+        elif current_user.is_rejected:
+            return redirect(url_for('access_denied'))
         return redirect(url_for('index'))
     
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user and user.check_password(form.password.data):
+            # Verificar status do usuário antes de fazer login
+            if user.is_pending:
+                flash('Sua conta está pendente de aprovação. Aguarde a liberação de um administrador.', 'warning')
+                return render_template('login.html', form=form)
+            elif user.is_rejected:
+                flash('Sua conta foi recusada. Entre em contato com o suporte para mais informações.', 'error')
+                return render_template('login.html', form=form)
+            elif not user.is_active:
+                flash('Sua conta está desativada. Entre em contato com o suporte.', 'error')
+                return render_template('login.html', form=form)
+            
+            # Atualizar último login
+            user.update_last_login()
+            db.session.commit()
+            
             login_user(user, remember=form.remember_me.data)
+            log_user_access('login')
+            
             next_page = request.args.get('next')
             if not next_page or url_parse(next_page).netloc != '':
                 next_page = url_for('index')
@@ -70,22 +116,27 @@ def login():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    """Registration page"""
+    """Registration page with pending approval system"""
     if current_user.is_authenticated:
         return redirect(url_for('index'))
     
     form = RegisterForm()
     if form.validate_on_submit():
+        # Criar usuário com status pendente
         user = User(
             username=form.username.data,
             email=form.email.data,
             first_name=form.first_name.data,
-            last_name=form.last_name.data
+            last_name=form.last_name.data,
+            role='Controladoria',  # Role padrão
+            status='Pendente'      # Status pendente para aprovação
         )
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
-        flash('Registro realizado com sucesso! Faça login.', 'success')
+        
+        flash('Registro realizado com sucesso! Sua conta está pendente de aprovação por um administrador. '
+              'Você receberá um email quando sua conta for liberada.', 'info')
         return redirect(url_for('login'))
     
     return render_template('register.html', form=form)
@@ -98,7 +149,7 @@ def logout():
     return redirect(url_for('login'))
 
 @app.route('/equipment')
-@login_required
+@requires_permission('view')
 def equipment_list():
     """Equipment list with search and filtering"""
     search_form = SearchForm(request.args)
@@ -205,7 +256,7 @@ def centro_custo_list():
     } for c in centros])
 
 @app.route('/equipment/new', methods=['GET', 'POST'])
-@login_required
+@requires_permission('create')
 def equipment_new():
     """Create new equipment"""
     form = EquipmentForm()
@@ -270,14 +321,14 @@ def equipment_new():
     return render_template('equipment_form.html', form=form, title='Novo Equipamento')
 
 @app.route('/equipment/<int:id>')
-@login_required
+@requires_permission('view')
 def equipment_detail(id):
     """Equipment detail view"""
     equipment = Equipment.query.get_or_404(id)
     return render_template('equipment_detail.html', equipment=equipment)
 
 @app.route('/equipment/<int:id>/edit', methods=['GET', 'POST'])
-@login_required
+@requires_permission('edit')
 def equipment_edit(id):
     """Edit equipment"""
     equipment = Equipment.query.get_or_404(id)
@@ -420,7 +471,7 @@ def equipment_edit(id):
     return render_template('equipment_form.html', form=form, title='Editar Equipamento', equipment=equipment)
 
 @app.route('/equipment/<int:id>/delete', methods=['POST'])
-@login_required
+@requires_permission('delete')
 def equipment_delete(id):
     """Delete equipment"""
     equipment = Equipment.query.get_or_404(id)
@@ -459,7 +510,7 @@ def export_pdf():
     return export_to_pdf(equipment)
 
 @app.route('/import', methods=['GET', 'POST'])
-@login_required
+@requires_permission('create')
 def import_equipment():
     """Import equipment from Excel file"""
     form = ImportForm()
@@ -835,3 +886,291 @@ def delete_checklist_item(item_id):
         'success': True,
         'progress': task.checklist_progress
     })
+
+# =============================================================================
+# ROTAS ADMINISTRATIVAS - Sistema de Controle de Acesso
+# =============================================================================
+
+@app.route('/pending-approval')
+@login_required
+def pending_approval():
+    """Página para usuários pendentes de aprovação"""
+    if not current_user.is_pending:
+        return redirect(url_for('index'))
+    return render_template('pending_approval.html')
+
+@app.route('/access-denied')
+def access_denied():
+    """Página de acesso negado"""
+    return render_template('access_denied.html')
+
+@app.route('/admin')
+@admin_required
+def admin_dashboard():
+    """Painel administrativo principal"""
+    log_user_access('admin_dashboard')
+    
+    # Estatísticas gerais
+    stats = {
+        'pending_users': User.query.filter_by(status='Pendente').count(),
+        'total_users': User.query.count(),
+        'approved_users': User.query.filter_by(status='Aprovado').count(),
+        'rejected_users': User.query.filter_by(status='Recusado').count(),
+        'admin_users': User.query.filter_by(role='ADM', status='Aprovado').count(),
+        'support_users': User.query.filter_by(role='Suporte', status='Aprovado').count(),
+        'controladoria_users': User.query.filter_by(role='Controladoria', status='Aprovado').count(),
+    }
+    
+    # Usuários pendentes recentes (últimos 10)
+    pending_users = User.query.filter_by(status='Pendente').order_by(User.created_at.desc()).limit(10).all()
+    
+    # Usuários recusados para limpeza (mais de 30 dias)
+    users_for_cleanup = User.get_rejected_users_for_cleanup()
+    
+    return render_template('admin/dashboard.html', 
+                         stats=stats, 
+                         pending_users=pending_users,
+                         users_for_cleanup=users_for_cleanup)
+
+@app.route('/admin/users')
+@admin_required
+def admin_users():
+    """Gestão de usuários"""
+    log_user_access('admin_users')
+    
+    # Filtros
+    filter_form = AdminFilterForm(request.args)
+    
+    # Query base
+    query = User.query
+    
+    # Aplicar filtros
+    if filter_form.status_filter.data:
+        query = query.filter(User.status == filter_form.status_filter.data)
+    
+    if filter_form.role_filter.data:
+        query = query.filter(User.role == filter_form.role_filter.data)
+    
+    if filter_form.search.data:
+        search_term = f"%{filter_form.search.data}%"
+        query = query.filter(
+            db.or_(
+                User.username.ilike(search_term),
+                User.email.ilike(search_term),
+                User.first_name.ilike(search_term),
+                User.last_name.ilike(search_term)
+            )
+        )
+    
+    # Paginação
+    page = request.args.get('page', 1, type=int)
+    users = query.order_by(User.created_at.desc()).paginate(
+        page=page, per_page=20, error_out=False
+    )
+    
+    return render_template('admin/users.html', users=users, filter_form=filter_form)
+
+@app.route('/admin/users/pending')
+@admin_required
+def admin_pending_users():
+    """Usuários pendentes de aprovação"""
+    log_user_access('admin_pending_users')
+    
+    pending_users = User.get_pending_users()
+    return render_template('admin/pending_users.html', pending_users=pending_users)
+
+@app.route('/admin/users/approve/<int:user_id>', methods=['GET', 'POST'])
+@admin_required
+def approve_user(user_id):
+    """Aprovar usuário"""
+    user = User.query.get_or_404(user_id)
+    if user.status != 'Pendente':
+        flash('Este usuário não está pendente de aprovação.', 'error')
+        return redirect(url_for('admin_pending_users'))
+    
+    form = UserApprovalForm()
+    if form.validate_on_submit():
+        user.approve(current_user)
+        user.role = form.role.data
+        db.session.commit()
+        
+        log_user_access('approve_user', f'User {user.username} approved with role {user.role}')
+        flash(f'Usuário {user.username} aprovado com sucesso como {user.role}.', 'success')
+        
+        # TODO: Enviar email de aprovação
+        
+        return redirect(url_for('admin_pending_users'))
+    
+    # Pré-preencher formulário
+    form.user_id.data = user.id
+    form.action.data = 'approve'
+    
+    return render_template('admin/approve_user.html', user=user, form=form)
+
+@app.route('/admin/users/reject/<int:user_id>', methods=['GET', 'POST'])
+@admin_required
+def reject_user(user_id):
+    """Recusar usuário"""
+    user = User.query.get_or_404(user_id)
+    if user.status != 'Pendente':
+        flash('Este usuário não está pendente de aprovação.', 'error')
+        return redirect(url_for('admin_pending_users'))
+    
+    form = UserApprovalForm()
+    if form.validate_on_submit():
+        reason = form.rejection_reason.data or 'Sem motivo especificado'
+        user.reject(current_user, reason)
+        db.session.commit()
+        
+        log_user_access('reject_user', f'User {user.username} rejected: {reason}')
+        flash(f'Usuário {user.username} recusado.', 'info')
+        
+        # TODO: Enviar email de recusa
+        
+        return redirect(url_for('admin_pending_users'))
+    
+    # Pré-preencher formulário
+    form.user_id.data = user.id
+    form.action.data = 'reject'
+    
+    return render_template('admin/reject_user.html', user=user, form=form)
+
+@app.route('/admin/users/create', methods=['GET', 'POST'])
+@support_or_admin_required
+def admin_create_user():
+    """Criar usuário através do painel administrativo"""
+    log_user_access('admin_create_user')
+    
+    form = AdminUserCreationForm()
+    if form.validate_on_submit():
+        user = User(
+            username=form.username.data,
+            email=form.email.data,
+            first_name=form.first_name.data,
+            last_name=form.last_name.data,
+            role=form.role.data
+        )
+        user.set_password(form.password.data)
+        
+        if form.auto_approve.data:
+            user.status = 'Aprovado'
+            user.approved_by = current_user.id
+            user.approved_at = datetime.utcnow()
+        else:
+            user.status = 'Pendente'
+        
+        db.session.add(user)
+        db.session.commit()
+        
+        log_user_access('create_user', f'User {user.username} created with role {user.role}')
+        flash(f'Usuário {user.username} criado com sucesso.', 'success')
+        
+        return redirect(url_for('admin_users'))
+    
+    return render_template('admin/create_user.html', form=form)
+
+@app.route('/admin/users/edit/<int:user_id>', methods=['GET', 'POST'])
+@support_or_admin_required
+def admin_edit_user(user_id):
+    """Editar usuário"""
+    user = User.query.get_or_404(user_id)
+    
+    # Suporte não pode editar administradores
+    if current_user.role == 'Suporte' and user.role == 'ADM':
+        flash('Você não tem permissão para editar administradores.', 'error')
+        return redirect(url_for('admin_users'))
+    
+    form = UserEditForm(obj=user)
+    if form.validate_on_submit():
+        user.username = form.username.data
+        user.email = form.email.data
+        user.first_name = form.first_name.data
+        user.last_name = form.last_name.data
+        user.is_active = form.is_active.data
+        
+        # Suporte não pode alterar role para ADM
+        if current_user.role == 'ADM' or form.role.data != 'ADM':
+            user.role = form.role.data
+        
+        if form.change_password.data and form.new_password.data:
+            user.set_password(form.new_password.data)
+        
+        db.session.commit()
+        
+        log_user_access('edit_user', f'User {user.username} edited')
+        flash(f'Usuário {user.username} atualizado com sucesso.', 'success')
+        
+        return redirect(url_for('admin_users'))
+    
+    # Pré-preencher formulário
+    form.user_id.data = user.id
+    
+    return render_template('admin/edit_user.html', user=user, form=form)
+
+@app.route('/admin/users/cleanup')
+@admin_required
+def cleanup_rejected_users():
+    """Limpeza automática de usuários recusados há mais de 30 dias"""
+    log_user_access('cleanup_rejected_users')
+    
+    users_to_delete = User.get_rejected_users_for_cleanup()
+    count = len(users_to_delete)
+    
+    for user in users_to_delete:
+        db.session.delete(user)
+    
+    db.session.commit()
+    
+    flash(f'{count} usuários recusados foram removidos do sistema.', 'info')
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/users/bulk-action', methods=['POST'])
+@admin_required
+def bulk_user_action():
+    """Ações em lote para usuários"""
+    form = BulkUserActionForm()
+    
+    if form.validate_on_submit():
+        selected_user_ids = request.form.getlist('selected_users')
+        action = form.bulk_action.data
+        
+        if not selected_user_ids:
+            flash('Selecione pelo menos um usuário.', 'error')
+            return redirect(url_for('admin_users'))
+        
+        users = User.query.filter(User.id.in_(selected_user_ids)).all()
+        count = len(users)
+        
+        if action == 'approve':
+            for user in users:
+                if user.status == 'Pendente':
+                    user.approve(current_user)
+            flash(f'{count} usuários aprovados.', 'success')
+            
+        elif action == 'reject':
+            reason = form.bulk_rejection_reason.data or 'Recusa em lote'
+            for user in users:
+                if user.status == 'Pendente':
+                    user.reject(current_user, reason)
+            flash(f'{count} usuários recusados.', 'info')
+            
+        elif action == 'activate':
+            for user in users:
+                user.is_active = True
+            flash(f'{count} usuários ativados.', 'success')
+            
+        elif action == 'deactivate':
+            for user in users:
+                user.is_active = False
+            flash(f'{count} usuários desativados.', 'info')
+            
+        elif action == 'delete_rejected':
+            users_to_delete = [u for u in users if u.status == 'Recusado']
+            for user in users_to_delete:
+                db.session.delete(user)
+            flash(f'{len(users_to_delete)} usuários recusados removidos.', 'info')
+        
+        db.session.commit()
+        log_user_access('bulk_action', f'Action {action} on {count} users')
+    
+    return redirect(url_for('admin_users'))

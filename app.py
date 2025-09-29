@@ -64,12 +64,28 @@ db = SQLAlchemy(app, model_class=Base)
 from routes import *  # noqa: E402, F403
 
 # ==========================
+# Context Processor para Permissões
+# ==========================
+from auth_decorators import inject_user_permissions
+app.context_processor(inject_user_permissions)
+
+# ==========================
 # Criação das Tabelas
 # ==========================
 with app.app_context():
     import models  # noqa: F401
     db.create_all()
     logging.info("✅ Tabelas do banco de dados criadas com sucesso")
+    
+    # Verificar se existe pelo menos um administrador no sistema
+    from models import User
+    admin_count = User.query.filter_by(role='ADM', status='Aprovado').count()
+    if admin_count == 0:
+        logging.warning("⚠️  AVISO: Nenhum administrador encontrado no sistema!")
+        logging.warning("⚠️  Para criar o primeiro administrador, execute:")
+        logging.warning("⚠️  python -c \"from models import User; from app import app, db; app.app_context().push(); admin = User.create_admin_user('seu_admin', 'admin@empresa.com', 'senha_segura'); db.session.add(admin); db.session.commit(); print('Admin criado!')\"")
+    else:
+        logging.info(f"✅ Sistema tem {admin_count} administrador(es) ativo(s)")
 
 # ==========================
 # Execução da Aplicação
