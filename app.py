@@ -21,8 +21,10 @@ class Base(DeclarativeBase):
 # ==========================
 app = Flask(__name__)
 
-# Chave secreta para sessões
-app.secret_key = os.environ.get("SESSION_SECRET", "default_secret")
+# Chave secreta para sessões - obrigatória
+app.secret_key = os.environ.get("SESSION_SECRET")
+if not app.secret_key:
+    raise RuntimeError("SESSION_SECRET environment variable is required")
 
 # Corrige geração de URLs atrás de proxies (necessário em produção com HTTPS)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
@@ -30,7 +32,10 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 # ==========================
 # Configuração do Banco de Dados
 # ==========================
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///app.db")
+database_url = os.environ.get("DATABASE_URL")
+if not database_url:
+    raise RuntimeError("DATABASE_URL environment variable is required")
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_pre_ping": True,
