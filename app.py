@@ -93,7 +93,7 @@ with app.app_context():
     if admin_count == 0:
         logging.warning("⚠️  AVISO: Nenhum administrador encontrado no sistema!")
         logging.warning("⚠️  Para criar o primeiro administrador, execute:")
-        logging.warning("⚠️  python -c \"from models import User; from app import app, db; app.app_context().push(); admin = User.create_admin_user('seu_admin', 'admin@empresa.com', 'senha_segura'); db.session.add(admin); db.session.commit(); print('Admin criado!')\"")
+        logging.warning("⚠️  python -c \"from app import app, db; from models import User; with app.app_context(): admin = User.create_admin_user('seu_admin', 'admin@empresa.com', 'senha_segura'); db.session.add(admin); db.session.commit(); print('Admin criado!')\"")
     else:
         logging.info(f"✅ Sistema tem {admin_count} administrador(es) ativo(s)")
 
