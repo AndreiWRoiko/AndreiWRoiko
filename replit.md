@@ -87,17 +87,29 @@ Preferred communication style: Simple, everyday language.
 - Installed all required Python dependencies via uv package manager
 - Configured workflow to run on port 5000 with webview output for user interface
 - Set up deployment configuration for autoscale target using Gunicorn
+- Added fallback configurations for SESSION_SECRET and DATABASE_URL for fresh imports
 - Application is now fully functional and accessible via web interface
 
 ### Configuration Details
 - **Server**: Gunicorn with reloading enabled for development
-- **Database**: PostgreSQL with connection pooling and health checks
+- **Database**: PostgreSQL with connection pooling and health checks (SQLite fallback for development)
 - **Host Configuration**: Bound to 0.0.0.0:5000 to allow proxy access
-- **Environment Secrets**: SESSION_SECRET and DATABASE_URL properly configured
+- **Environment Secrets**: SESSION_SECRET and DATABASE_URL with development fallbacks
 - **Workflow Status**: Running successfully on port 5000
 
-### Next Steps for Users
-- The application displays a login interface in Portuguese
-- Users need to create an administrator account to begin using the system
-- The system includes role-based access control with user approval workflow
-- All inventory management features are ready for use
+### Environment Variables for Production
+For production deployment, configure these environment variables:
+- **SESSION_SECRET**: Secure session encryption key (auto-generated in development)
+- **DATABASE_URL**: PostgreSQL connection string (defaults to SQLite in development)
+
+### First-Time Setup
+1. The application displays a login interface in Portuguese
+2. Create the first administrator account by running:
+   ```
+   python -c "from models import User; from app import app, db; app.app_context().push(); admin = User.create_admin_user('admin_user', 'admin@company.com', 'secure_password'); db.session.add(admin); db.session.commit(); print('Admin created!')"
+   ```
+3. The system includes role-based access control with user approval workflow
+4. All inventory management features are ready for use
+
+### Ready for Publishing
+The application is fully configured and ready to be published to production using Replit's deployment system.
