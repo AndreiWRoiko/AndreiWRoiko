@@ -105,12 +105,19 @@ For production deployment, configure these environment variables:
 
 ### First-Time Setup
 1. The application displays a login interface in Portuguese
-2. Create the first administrator account by running:
+2. **Admin user has been created and configured:**
+   - An administrator account has been set up with secure credentials
+   - Contact the system administrator for login credentials
+   - Role: ADM (Administrator)
+   - Status: Approved
+
+3. To create additional admin users, run:
+   ```bash
+   python -c "from app import app, db; from models import User; with app.app_context(): admin = User.create_admin_user('username', 'email@empresa.com', 'secure_password'); db.session.add(admin); db.session.commit(); print('Admin created!')"
    ```
-   python -c "from models import User; from app import app, db; app.app_context().push(); admin = User.create_admin_user('admin_user', 'admin@company.com', 'secure_password'); db.session.add(admin); db.session.commit(); print('Admin created!')"
-   ```
-3. The system includes role-based access control with user approval workflow
-4. All inventory management features are ready for use
+
+4. The system includes role-based access control with user approval workflow
+5. All inventory management features are ready for use
 
 ### Ready for Publishing
 The application is fully configured and ready to be published to production using Replit's deployment system.
