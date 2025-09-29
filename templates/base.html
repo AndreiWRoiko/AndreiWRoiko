@@ -25,7 +25,7 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('main.index') }}">
+            <a class="navbar-brand" href="{{ url_for('main.landing') }}">
                 <i class="fas fa-desktop me-2"></i>
                 Sistema de Inventário
             </a>
@@ -37,8 +37,8 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" 
-                           href="{{ url_for('main.index') }}">
+                        <a class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" 
+                           href="{{ url_for('main.dashboard') }}">
                             <i class="fas fa-chart-line me-1"></i>Dashboard
                         </a>
                     </li>
@@ -49,7 +49,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('inventory.equipment_new') }}">
+                        <a class="nav-link" href="{{ url_for('inventory.equipment_create') }}">
                             <i class="fas fa-plus me-1"></i>Novo Equipamento
                         </a>
                     </li>
@@ -58,18 +58,19 @@
                             <i class="fas fa-file-import me-1"></i>Importar Dados
                         </a>
                     </li>
+                    <!-- Histórico e Planner temporariamente removidos - rotas não implementadas -->
+                    <!--
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'history_log' %}active{% endif %}" 
-                           href="{{ url_for('inventory.history_log') }}">
+                        <a class="nav-link" href="#">
                             <i class="fas fa-history me-1"></i>Histórico
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'planner' %}active{% endif %}" 
-                           href="{{ url_for('inventory.planner') }}">
+                        <a class="nav-link" href="#">
                             <i class="fas fa-columns me-1"></i>Planner
                         </a>
                     </li>
+                    -->
                     
                     <!-- Menu Administrativo - visível apenas para admins -->
                     {% if current_user.is_authenticated and current_user.role == 'ADM' %}
@@ -79,20 +80,20 @@
                                 <i class="fas fa-cogs me-1"></i>Administração
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ url_for('admin_dashboard') }}">
+                                <li><a class="dropdown-item" href="{{ url_for('admin.admin_dashboard') }}">
                                     <i class="fas fa-tachometer-alt me-2"></i>Dashboard Admin
                                 </a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('admin_pending_users') }}">
+                                <li><a class="dropdown-item" href="{{ url_for('admin.pending_users') }}">
                                     <i class="fas fa-user-clock me-2"></i>Usuários Pendentes
                                     {% if pending_users_count and pending_users_count > 0 %}
                                         <span class="badge bg-warning text-dark">{{ pending_users_count }}</span>
                                     {% endif %}
                                 </a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('admin_users') }}">
+                                <li><a class="dropdown-item" href="{{ url_for('admin.users') }}">
                                     <i class="fas fa-users me-2"></i>Gerenciar Usuários
                                 </a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('admin_create_user') }}">
+                                <li><a class="dropdown-item" href="{{ url_for('admin.create_user') }}">
                                     <i class="fas fa-user-plus me-2"></i>Criar Usuário
                                 </a></li>
                             </ul>
@@ -107,7 +108,7 @@
                                 <i class="fas fa-user me-1"></i>{{ current_user.display_name }}
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ url_for('logout') }}">
+                                <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
                                     <i class="fas fa-sign-out-alt me-2"></i>Sair
                                 </a></li>
                             </ul>
