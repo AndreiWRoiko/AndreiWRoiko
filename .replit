@@ -18,10 +18,10 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Flask Application"
+args = "Equipment Inventory System"
 
 [[workflows.workflow]]
-name = "Flask Application"
+name = "Equipment Inventory System"
 author = "agent"
 
 [[workflows.workflow.tasks]]
@@ -37,7 +37,7 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 46563
+localPort = 42529
 externalPort = 3000
 
 [agent]
