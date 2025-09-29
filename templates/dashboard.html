@@ -95,7 +95,7 @@
             <div class="metric-icon mb-3">
                 <i class="fas fa-desktop"></i>
             </div>
-            <div class="metric-number">{{ stats.total }}</div>
+            <div class="metric-number">{{ user_stats.total if user_stats else 0 }}</div>
             <div class="metric-label">Total de Equipamentos</div>
         </div>
     </div>
@@ -105,7 +105,7 @@
             <div class="metric-icon mb-3">
                 <i class="fas fa-check-circle"></i>
             </div>
-            <div class="metric-number">{{ stats.em_uso }}</div>
+            <div class="metric-number">{{ user_stats.em_uso if user_stats else 0 }}</div>
             <div class="metric-label">Em Uso</div>
         </div>
     </div>
@@ -115,7 +115,7 @@
             <div class="metric-icon mb-3">
                 <i class="fas fa-file-contract"></i>
             </div>
-            <div class="metric-number">{{ stats.sem_termo }}</div>
+            <div class="metric-number">{{ user_stats.sem_termo if user_stats else 0 }}</div>
             <div class="metric-label">Sem Termo Assinado</div>
         </div>
     </div>
@@ -125,7 +125,7 @@
             <div class="metric-icon mb-3">
                 <i class="fas fa-dollar-sign"></i>
             </div>
-            <div class="metric-number">R$ {{ "{:,.0f}".format(stats.valor_total) }}</div>
+            <div class="metric-number">R$ {{ "{:,.0f}".format(user_stats.valor_total) if user_stats and user_stats.valor_total else "0" }}</div>
             <div class="metric-label">Valor Total</div>
         </div>
     </div>
@@ -210,39 +210,39 @@
             <div class="card-body p-4">
                 <div class="row">
                     <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-                        <a href="{{ url_for('equipment_new') }}" class="btn btn-success w-100 py-3">
+                        <a href="{{ url_for('inventory.equipment_create') }}" class="btn btn-success w-100 py-3">
                             <i class="fas fa-plus mb-2 d-block"></i>
                             <small>Novo Equipamento</small>
                         </a>
                     </div>
                     <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-                        <a href="{{ url_for('import_equipment') }}" class="btn btn-outline-success w-100 py-3">
+                        <a href="{{ url_for('inventory.import_equipment') }}" class="btn btn-outline-success w-100 py-3">
                             <i class="fas fa-file-import mb-2 d-block"></i>
                             <small>Importar Dados</small>
                         </a>
                     </div>
                     <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-                        <a href="{{ url_for('equipment_list') }}" class="btn btn-outline-success w-100 py-3">
+                        <a href="{{ url_for('inventory.equipment_list') }}" class="btn btn-outline-success w-100 py-3">
                             <i class="fas fa-list mb-2 d-block"></i>
                             <small>Ver Todos</small>
                         </a>
                     </div>
                     <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-                        <a href="{{ url_for('history_log') }}" class="btn btn-outline-success w-100 py-3">
+                        <a href="#" class="btn btn-outline-secondary w-100 py-3" disabled>
                             <i class="fas fa-history mb-2 d-block"></i>
-                            <small>Histórico</small>
+                            <small>Histórico (Em Breve)</small>
                         </a>
                     </div>
                     <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-                        <a href="{{ url_for('export_excel') }}" class="btn btn-outline-success w-100 py-3">
+                        <a href="#" class="btn btn-outline-secondary w-100 py-3" disabled>
                             <i class="fas fa-file-excel mb-2 d-block"></i>
-                            <small>Exportar Excel</small>
+                            <small>Exportar Excel (Em Breve)</small>
                         </a>
                     </div>
                     <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-                        <a href="{{ url_for('export_pdf') }}" class="btn btn-outline-success w-100 py-3">
+                        <a href="#" class="btn btn-outline-secondary w-100 py-3" disabled>
                             <i class="fas fa-file-pdf mb-2 d-block"></i>
-                            <small>Exportar PDF</small>
+                            <small>Exportar PDF (Em Breve)</small>
                         </a>
                     </div>
                 </div>
@@ -289,7 +289,7 @@ const defaultOptions = {
 };
 
 // Fornecedores Chart
-const fornecedorData = {{ fornecedor_data | tojson }};
+const fornecedorData = {{ equipment_data.fornecedor_data | tojson if equipment_data and equipment_data.fornecedor_data else '[]' }};
 if (fornecedorData && fornecedorData.length > 0) {
     const ctx1 = document.getElementById('fornecedorChart').getContext('2d');
     new Chart(ctx1, {
@@ -326,7 +326,7 @@ if (fornecedorData && fornecedorData.length > 0) {
 }
 
 // UF Chart
-const ufData = {{ uf_data | tojson }};
+const ufData = {{ equipment_data.uf_data | tojson if equipment_data and equipment_data.uf_data else '[]' }};
 if (ufData && ufData.length > 0) {
     const ctx2 = document.getElementById('ufChart').getContext('2d');
     new Chart(ctx2, {
@@ -363,7 +363,7 @@ if (ufData && ufData.length > 0) {
 }
 
 // Status Chart
-const statusData = {{ status_data | tojson }};
+const statusData = {{ equipment_data.status_data | tojson if equipment_data and equipment_data.status_data else '[]' }};
 if (statusData && statusData.length > 0) {
     const ctx3 = document.getElementById('statusChart').getContext('2d');
     new Chart(ctx3, {
@@ -396,7 +396,7 @@ if (statusData && statusData.length > 0) {
 }
 
 // Segmentos Chart
-const segmentosData = {{ segmentos_data | tojson }};
+const segmentosData = {{ equipment_data.segmentos_data | tojson if equipment_data and equipment_data.segmentos_data else '[]' }};
 if (segmentosData && segmentosData.length > 0) {
     const ctx4 = document.getElementById('segmentosChart').getContext('2d');
     new Chart(ctx4, {

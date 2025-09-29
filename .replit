@@ -1,4 +1,4 @@
-modules = ["web", "python-3.11", "nodejs-20", "postgresql-16"]
+modules = ["web", "python-3.11", "nodejs-20"]
 
 [nix]
 channel = "stable-25_05"
@@ -6,7 +6,7 @@ packages = ["freetype", "glibcLocales", "openssl", "postgresql"]
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["gunicorn", "--bind", "0.0.0.0:5000", "--reuse-port", "main:app"]
+run = ["gunicorn", "--bind", "0.0.0.0:5000", "--reuse-port", "wsgi:app"]
 
 [workflows]
 runButton = "Project"
@@ -18,24 +18,31 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Start application"
+args = "Flask App"
 
 [[workflows.workflow]]
-name = "Start application"
+name = "Flask App"
 author = "agent"
-
-[workflows.workflow.metadata]
-outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "uv run gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app"
+args = "python main.py"
 waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
 
 [[ports]]
 localPort = 5000
 externalPort = 80
 
+<<<<<<< HEAD
+=======
+[[ports]]
+localPort = 33519
+externalPort = 3000
+
+>>>>>>> f7ea27cc2542633a714ce0395ac72fac810b7a25
 [agent]
 integrations = ["styling_replit:1.0.0", "flask_authentication:1.0.0", "python_log_in_with_replit:1.0.0"]
 expertMode = true

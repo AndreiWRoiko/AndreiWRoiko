@@ -213,7 +213,7 @@ class Equipment(db.Model):
     # Novos campos
     link_termos = db.Column(db.String(500), nullable=True)  # Link dos termos assinados
     historico_modificacoes = db.Column(db.Text, nullable=True)  # Histórico de modificações
-    senha = db.Column(db.String(255), nullable=True)  # Campo senha
+    # senha field removed for security - plaintext passwords should never be stored
     cc = db.Column(db.String(300), nullable=True)  # Centro de custo texto (legacy field)
     
     def __repr__(self):
@@ -295,7 +295,6 @@ class Equipment(db.Model):
             'telefone': self.telefone,
             'email': self.email,
             'link_termos': self.link_termos,
-            'senha': self.senha,
             'historico_modificacoes': self.historico_modificacoes
         }
     
