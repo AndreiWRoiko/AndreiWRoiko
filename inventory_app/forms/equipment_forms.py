@@ -29,7 +29,17 @@ class EquipmentForm(FlaskForm):
         ('TO', 'Tocantins')
     ], validators=[DataRequired()])
     centro_custo_id = SelectField('Centro de Custo', coerce=int, validators=[DataRequired()])
-    cnpj = TextAreaField('CNPJ', validators=[Optional(), Length(max=500)])
+    cnpj = SelectField('CNPJ', choices=[
+        ('', 'Selecionar CNPJ'),
+        ('24.329.959/0001-33', 'ATENAS SERVIÇO DE APOIO LTDA - 24.329.959/0001-33'),
+        ('15.541.957/0001-12', 'TELOS CONSULTORIA EMPRESARIAL LTDA - 15.541.957/0001-12'),
+        ('14.706.283/0001-04', 'OPUS CONSULTORIA LTDA - 14.706.283/0001-04'),
+        ('14.706.283/0002-87', 'OPUS CONSULTORIA LTDA - 14.706.283/0002-87'),
+        ('42.537.087/0001-80', 'OPUS SERVIÇOS ESPECIALIZADOS LTDA - 42.537.087/0001-80'),
+        ('49.996.326/0001-00', 'OPUS MANUTENCAO LTDA - 49.996.326/0001-00'),
+        ('50.016.866/0001-69', 'OPUS LOGISTICA LTDA - 50.016.866/0001-69'),
+        ('42.537.087/0002-61', 'OPUS SERVICOS ESPECIALIZADOS LTDA - 42.537.087/0002-61')
+    ], validators=[Optional()], validate_choice=False)
     
     # Equipamento
     fornecedor = StringField('Fornecedor', validators=[Length(max=100)])
@@ -89,6 +99,16 @@ class EquipmentForm(FlaskForm):
             # If no cost centers exist, make it optional
             self.centro_custo_id.choices = [(0, 'Nenhum centro de custo cadastrado')]
             self.centro_custo_id.validators = [Optional()]
+        
+        # Handle legacy CNPJ values when editing existing equipment
+        obj = kwargs.get('obj')
+        if obj and hasattr(obj, 'cnpj') and obj.cnpj:
+            # Get the list of predefined CNPJ values
+            predefined_cnpjs = [choice[0] for choice in self.cnpj.choices]
+            # If the equipment's CNPJ is not in the predefined list, add it
+            if obj.cnpj not in predefined_cnpjs:
+                self.cnpj.choices.append((obj.cnpj, f'{obj.cnpj} (Legado)'))
+
     
     def validate_patrimonio(self, patrimonio):
         """Validate patrimonio uniqueness"""

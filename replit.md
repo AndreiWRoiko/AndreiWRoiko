@@ -81,7 +81,28 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (September 30, 2025)
 
-### Fresh GitHub Import Setup - COMPLETED (September 30, 2025 - Latest)
+### CNPJ Dropdown Configuration - COMPLETED (September 30, 2025 - Latest)
+- ✅ **CNPJ Field Updated**: Converted from text field to dropdown with company options
+  - Added 8 company CNPJs as selectable options:
+    - ATENAS SERVIÇO DE APOIO LTDA - 24.329.959/0001-33
+    - TELOS CONSULTORIA EMPRESARIAL LTDA - 15.541.957/0001-12
+    - OPUS CONSULTORIA LTDA - 14.706.283/0001-04
+    - OPUS CONSULTORIA LTDA - 14.706.283/0002-87
+    - OPUS SERVIÇOS ESPECIALIZADOS LTDA - 42.537.087/0001-80
+    - OPUS MANUTENCAO LTDA - 49.996.326/0001-00
+    - OPUS LOGISTICA LTDA - 50.016.866/0001-69
+    - OPUS SERVICOS ESPECIALIZADOS LTDA - 42.537.087/0002-61
+  - Updated in `inventory_app/forms/equipment_forms.py`
+  - Changed from TextAreaField to SelectField for better data consistency
+  - **Legacy Data Handling**: Implemented smart CNPJ preservation
+    - Uses `validate_choice=False` to allow non-predefined values
+    - Dynamically adds legacy CNPJ values to dropdown when editing (marked as "Legado")
+    - Prevents data loss when editing equipment with existing CNPJ values
+    - New equipment uses curated dropdown, existing equipment preserves original values
+  - Application restarted and changes applied successfully
+  - Architect reviewed and approved the implementation
+
+### Fresh GitHub Import Setup - COMPLETED (September 30, 2025)
 - ✅ **Fresh GitHub Clone**: Successfully imported fresh repository and configured for Replit environment
 - ✅ **Python Environment**: Python 3.11 with UV package manager
   - Executed `uv sync` to install 46 packages from pyproject.toml and uv.lock
