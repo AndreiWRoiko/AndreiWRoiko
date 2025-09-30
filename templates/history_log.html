@@ -43,7 +43,7 @@
                     <div class="row">
                         {% for profile in profiles %}
                         <div class="col-md-4 col-lg-3 mb-3">
-                            <a href="{{ url_for('history_by_profile', profile_name=profile) }}" 
+                            <a href="{{ url_for('inventory.history_by_profile', profile_name=profile) }}" 
                                class="card text-decoration-none h-100">
                                 <div class="card-body text-center">
                                     <i class="fas fa-user fa-2x text-primary mb-3"></i>
@@ -78,7 +78,7 @@
     <div class="col-12">
         <nav class="mb-4">
             <div class="d-flex align-items-center">
-                <a href="{{ url_for('history_log') }}" class="btn btn-outline-secondary me-3">
+                <a href="{{ url_for('inventory.history_log') }}" class="btn btn-outline-secondary me-3">
                     <i class="fas fa-arrow-left me-1"></i>Voltar
                 </a>
                 <div class="dropdown">
@@ -88,7 +88,7 @@
                     <ul class="dropdown-menu">
                         {% for profile in profiles %}
                         <li><a class="dropdown-item {% if profile == current_profile %}active{% endif %}" 
-                               href="{{ url_for('history_by_profile', profile_name=profile) }}">
+                               href="{{ url_for('inventory.history_by_profile', profile_name=profile) }}">
                             <i class="fas fa-user me-2"></i>{{ profile }}
                         </a></li>
                         {% endfor %}
@@ -120,7 +120,7 @@
                             </h5>
                             <div>
                                 <span class="badge bg-success">{{ equipment.get_history()|length }} modificação(ões)</span>
-                                <a href="{{ url_for('equipment_detail', id=equipment.id) }}" class="btn btn-sm btn-outline-primary ms-2">
+                                <a href="{{ url_for('inventory.equipment_detail', id=equipment.id) }}" class="btn btn-sm btn-outline-primary ms-2">
                                     <i class="fas fa-eye me-1"></i>Ver Detalhes
                                 </a>
                             </div>
@@ -166,10 +166,10 @@
                     Este usuário ainda não possui modificações registradas no sistema.
                 </p>
                 <div class="mt-4">
-                    <a href="{{ url_for('history_log') }}" class="btn btn-primary me-2">
+                    <a href="{{ url_for('inventory.history_log') }}" class="btn btn-primary me-2">
                         <i class="fas fa-arrow-left me-2"></i>Voltar
                     </a>
-                    <a href="{{ url_for('equipment_list') }}" class="btn btn-outline-secondary">
+                    <a href="{{ url_for('inventory.equipment_list') }}" class="btn btn-outline-secondary">
                         <i class="fas fa-list me-2"></i>Ver Equipamentos
                     </a>
                 </div>

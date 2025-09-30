@@ -12,7 +12,7 @@
                 <i class="fas fa-{% if equipment %}edit{% else %}plus{% endif %} me-2"></i>
                 {{ title }}
             </h1>
-            <a href="{{ url_for('equipment_list') }}" class="btn btn-secondary">
+            <a href="{{ url_for('inventory.equipment_list') }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left me-2"></i>Voltar à Lista
             </a>
         </div>
@@ -404,7 +404,7 @@
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
-                        <a href="{{ url_for('equipment_list') }}" class="btn btn-secondary">
+                        <a href="{{ url_for('inventory.equipment_list') }}" class="btn btn-secondary">
                             <i class="fas fa-times me-2"></i>Cancelar
                         </a>
                         <button type="submit" class="btn btn-primary">

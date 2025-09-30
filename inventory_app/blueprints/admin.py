@@ -21,11 +21,11 @@ def admin_dashboard():
         return redirect(url_for('main.dashboard'))
     
     # Get admin statistics
-    user_stats = UserService.get_user_stats()
+    stats = UserService.get_user_stats()
     pending_users = UserService.get_pending_users()
     
     return render_template('admin/dashboard.html', 
-                         user_stats=user_stats,
+                         stats=stats,
                          pending_users=pending_users)
 
 

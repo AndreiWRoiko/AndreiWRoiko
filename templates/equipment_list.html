@@ -11,10 +11,10 @@
                 Lista de Equipamentos
             </h1>
             <div>
-                <a href="{{ url_for('import_equipment') }}" class="btn btn-info me-2">
+                <a href="{{ url_for('inventory.import_equipment') }}" class="btn btn-info me-2">
                     <i class="fas fa-file-import me-2"></i>Importar Dados
                 </a>
-                <a href="{{ url_for('equipment_new') }}" class="btn btn-primary">
+                <a href="{{ url_for('inventory.equipment_create') }}" class="btn btn-primary">
                     <i class="fas fa-plus me-2"></i>Novo Equipamento
                 </a>
             </div>
@@ -71,16 +71,16 @@
                     </div>
                     <div class="row">
                         <div class="col-12">
-                            <a href="{{ url_for('equipment_list') }}" class="btn btn-secondary me-2">
+                            <a href="{{ url_for('inventory.equipment_list') }}" class="btn btn-secondary me-2">
                                 <i class="fas fa-times me-1"></i>Limpar Filtros
                             </a>
-                            <a href="{{ url_for('download_template') }}" class="btn btn-warning me-2">
+                            <a href="{{ url_for('inventory.download_template') }}" class="btn btn-warning me-2">
                                 <i class="fas fa-download me-1"></i>Modelo
                             </a>
-                            <a href="{{ url_for('export_excel', **request.args) }}" class="btn btn-success me-2">
+                            <a href="{{ url_for('inventory.export_excel', **request.args) }}" class="btn btn-success me-2">
                                 <i class="fas fa-file-excel me-1"></i>Excel
                             </a>
-                            <a href="{{ url_for('export_pdf', **request.args) }}" class="btn btn-danger">
+                            <a href="{{ url_for('inventory.export_pdf', **request.args) }}" class="btn btn-danger">
                                 <i class="fas fa-file-pdf me-1"></i>PDF
                             </a>
                         </div>
@@ -149,11 +149,11 @@
                                         <td>R$ {{ "{:,.2f}".format(item.valor) }}</td>
                                         <td>
                                             <div class="btn-group btn-group-sm" role="group">
-                                                <a href="{{ url_for('equipment_detail', id=item.id) }}" 
+                                                <a href="{{ url_for('inventory.equipment_detail', id=item.id) }}" 
                                                    class="btn btn-outline-primary" title="Ver detalhes">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                <a href="{{ url_for('equipment_edit', id=item.id) }}" 
+                                                <a href="{{ url_for('inventory.equipment_edit', id=item.id) }}" 
                                                    class="btn btn-outline-secondary" title="Editar">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
@@ -175,7 +175,7 @@
                         <nav aria-label="Page navigation">
                             <ul class="pagination justify-content-center">
                                 <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
-                                    <a class="page-link" href="{% if pagination.has_prev %}{{ url_for('equipment_list', page=pagination.prev_num, search_term=request.args.get('search_term', ''), uf=request.args.get('uf', ''), status=request.args.get('status', ''), cnpj=request.args.get('cnpj', ''), marca=request.args.get('marca', ''), cc=request.args.get('cc', '')) }}{% else %}#{% endif %}">
+                                    <a class="page-link" href="{% if pagination.has_prev %}{{ url_for('inventory.equipment_list', page=pagination.prev_num, search_term=request.args.get('search_term', ''), uf=request.args.get('uf', ''), status=request.args.get('status', ''), cnpj=request.args.get('cnpj', ''), marca=request.args.get('marca', ''), cc=request.args.get('cc', '')) }}{% else %}#{% endif %}">
                                         Anterior
                                     </a>
                                 </li>
@@ -183,7 +183,7 @@
                                 {% for page_num in range(1, pagination.pages + 1) %}
                                     {% if page_num <= 3 or page_num > pagination.pages - 3 or (page_num >= pagination.page - 1 and page_num <= pagination.page + 1) %}
                                         <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
-                                            <a class="page-link" href="{{ url_for('equipment_list', page=page_num, search_term=request.args.get('search_term', ''), uf=request.args.get('uf', ''), status=request.args.get('status', ''), cnpj=request.args.get('cnpj', ''), marca=request.args.get('marca', ''), cc=request.args.get('cc', '')) }}">
+                                            <a class="page-link" href="{{ url_for('inventory.equipment_list', page=page_num, search_term=request.args.get('search_term', ''), uf=request.args.get('uf', ''), status=request.args.get('status', ''), cnpj=request.args.get('cnpj', ''), marca=request.args.get('marca', ''), cc=request.args.get('cc', '')) }}">
                                                 {{ page_num }}
                                             </a>
                                         </li>
@@ -195,7 +195,7 @@
                                 {% endfor %}
                                 
                                 <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
-                                    <a class="page-link" href="{% if pagination.has_next %}{{ url_for('equipment_list', page=pagination.next_num, search_term=request.args.get('search_term', ''), uf=request.args.get('uf', ''), status=request.args.get('status', ''), cnpj=request.args.get('cnpj', ''), marca=request.args.get('marca', ''), cc=request.args.get('cc', '')) }}{% else %}#{% endif %}">
+                                    <a class="page-link" href="{% if pagination.has_next %}{{ url_for('inventory.equipment_list', page=pagination.next_num, search_term=request.args.get('search_term', ''), uf=request.args.get('uf', ''), status=request.args.get('status', ''), cnpj=request.args.get('cnpj', ''), marca=request.args.get('marca', ''), cc=request.args.get('cc', '')) }}{% else %}#{% endif %}">
                                         Próximo
                                     </a>
                                 </li>
@@ -207,7 +207,7 @@
                         <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
                         <h5 class="text-muted">Nenhum equipamento encontrado</h5>
                         <p class="text-muted">Tente ajustar os filtros de pesquisa ou adicione um novo equipamento.</p>
-                        <a href="{{ url_for('equipment_new') }}" class="btn btn-primary">
+                        <a href="{{ url_for('inventory.equipment_create') }}" class="btn btn-primary">
                             <i class="fas fa-plus me-2"></i>Adicionar Equipamento
                         </a>
                     </div>

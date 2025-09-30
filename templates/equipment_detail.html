@@ -11,10 +11,10 @@
                 Detalhes do Equipamento
             </h1>
             <div>
-                <a href="{{ url_for('equipment_edit', id=equipment.id) }}" class="btn btn-primary me-2">
+                <a href="{{ url_for('inventory.equipment_edit', id=equipment.id) }}" class="btn btn-primary me-2">
                     <i class="fas fa-edit me-2"></i>Editar
                 </a>
-                <a href="{{ url_for('equipment_list') }}" class="btn btn-secondary">
+                <a href="{{ url_for('inventory.equipment_list') }}" class="btn btn-secondary">
                     <i class="fas fa-arrow-left me-2"></i>Voltar à Lista
                 </a>
             </div>
@@ -257,10 +257,10 @@
                         <i class="fas fa-trash me-2"></i>Excluir Equipamento
                     </button>
                     <div>
-                        <a href="{{ url_for('equipment_edit', id=equipment.id) }}" class="btn btn-primary me-2">
+                        <a href="{{ url_for('inventory.equipment_edit', id=equipment.id) }}" class="btn btn-primary me-2">
                             <i class="fas fa-edit me-2"></i>Editar
                         </a>
-                        <a href="{{ url_for('equipment_list') }}" class="btn btn-secondary">
+                        <a href="{{ url_for('inventory.equipment_list') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left me-2"></i>Voltar à Lista
                         </a>
                     </div>
@@ -284,7 +284,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <form method="POST" action="{{ url_for('equipment_delete', id=equipment.id) }}" style="display: inline;">
+                <form method="POST" action="{{ url_for('inventory.equipment_delete', id=equipment.id) }}" style="display: inline;">
                     <button type="submit" class="btn btn-danger">Excluir</button>
                 </form>
             </div>
