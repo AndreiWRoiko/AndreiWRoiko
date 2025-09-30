@@ -51,7 +51,8 @@ def equipment_list():
     equipment_pagination = EquipmentService.search_equipment(query, filters, page)
     
     return render_template('equipment_list.html', 
-                         equipment=equipment_pagination,
+                         pagination=equipment_pagination,
+                         equipment=equipment_pagination.items if hasattr(equipment_pagination, 'items') else equipment_pagination,
                          form=form,
                          query=query,
                          filters=request.args)
