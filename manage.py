@@ -83,7 +83,8 @@ def check_db():
     """Check database connection"""
     try:
         # Try a simple query
-        result = db.session.execute('SELECT 1').scalar()
+        from sqlalchemy import text
+        result = db.session.execute(text('SELECT 1')).scalar()
         if result == 1:
             click.echo('✅ Database connection successful!')
             click.echo(f'Database URL: {app.config["SQLALCHEMY_DATABASE_URI"][:50]}...')
