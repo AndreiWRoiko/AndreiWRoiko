@@ -23,9 +23,13 @@ from pathlib import Path
 # Adicionar o diretório raiz ao path para importar módulos da aplicação
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app import app, db
+from inventory_app import create_app
+from inventory_app.extensions import db
 from sqlalchemy import inspect, text
 from sqlalchemy.exc import SQLAlchemyError
+
+# Criar instância da aplicação
+app = create_app()
 
 
 def get_table_row_count(table_name):
