@@ -3,7 +3,6 @@ Configuração da aplicação - Flask Equipment Inventory System
 """
 import os
 import secrets
-from typing import Type
 from db import get_database_config
 
 
@@ -28,6 +27,11 @@ class Config:
     SESSION_COOKIE_SECURE = os.environ.get("FLASK_ENV") == "production"
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
+    
+    # Configuração do banco de dados
+    SQLALCHEMY_DATABASE_URI = None
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ENGINE_OPTIONS = {}
 
 # Configurar o banco de dados usando o arquivo db.py
 try:
@@ -74,7 +78,7 @@ config = {
 }
 
 
-def get_config() -> Type[Config]:
+def get_config():
     """Retorna a configuração baseada no ambiente"""
     env = os.environ.get("FLASK_ENV", "default")
     return config.get(env, config["default"])
