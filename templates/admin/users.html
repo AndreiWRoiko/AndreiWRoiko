@@ -125,38 +125,4 @@
     </div>
 </div>
 
-<!-- Ações em Lote -->
-{% if users.items %}
-<div class="card mt-4">
-    <div class="card-header">
-        <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>Ações em Lote</h5>
-    </div>
-    <div class="card-body">
-        <form method="POST" action="{{ url_for('admin.bulk_action') }}" class="row g-3">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <div class="col-md-4">
-                <label class="form-label">Ação</label>
-                <select name="action" class="form-select" required>
-                    <option value="">Selecione uma ação</option>
-                    <option value="activate">Ativar usuários</option>
-                    <option value="deactivate">Desativar usuários</option>
-                    <option value="approve">Aprovar usuários</option>
-                    <option value="reject">Recusar usuários</option>
-                </select>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label">Usuários (IDs separados por vírgula)</label>
-                <input type="text" name="user_ids" class="form-control" 
-                       placeholder="1,2,3..." required>
-            </div>
-            <div class="col-md-2 d-flex align-items-end">
-                <button type="submit" class="btn btn-warning" 
-                        onclick="return confirm('Tem certeza que deseja executar esta ação?')">
-                    <i class="fas fa-play me-1"></i>Executar
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-{% endif %}
 {% endblock %}
