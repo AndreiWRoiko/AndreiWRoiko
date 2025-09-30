@@ -221,7 +221,7 @@ def edit_user(user_id):
     form = RegistrationForm(obj=user)
     # Remove password requirement for editing
     form.password.validators = []
-    form.confirm_password.validators = []
+    form.password2.validators = []
     
     if form.validate_on_submit():
         try:
