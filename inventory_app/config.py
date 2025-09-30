@@ -29,9 +29,9 @@ class Config:
     SESSION_COOKIE_SAMESITE = "Lax"
     
     # Configuração do banco de dados
-    SQLALCHEMY_DATABASE_URI = None
+    SQLALCHEMY_DATABASE_URI: str | None = None
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SQLALCHEMY_ENGINE_OPTIONS = {}
+    SQLALCHEMY_ENGINE_OPTIONS: dict = {}
 
 # Configurar o banco de dados usando o arquivo db.py
 try:
