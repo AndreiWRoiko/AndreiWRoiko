@@ -29,7 +29,7 @@ class EquipmentForm(FlaskForm):
         ('TO', 'Tocantins')
     ], validators=[DataRequired()])
     centro_custo_id = SelectField('Centro de Custo', coerce=int, validators=[DataRequired()])
-    cnpj = TextAreaField('CNPJ', validators=[DataRequired()])
+    cnpj = TextAreaField('CNPJ', validators=[Optional(), Length(max=500)])
     
     # Equipamento
     fornecedor = StringField('Fornecedor', validators=[Length(max=100)])
@@ -79,10 +79,16 @@ class EquipmentForm(FlaskForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Populate centro_custo choices
-        self.centro_custo_id.choices = [(0, 'Selecionar')] + [
-            (cc.id, f"{cc.codigo} - {cc.descricao}") 
-            for cc in CentroCusto.get_all_active()
-        ]
+        centros = CentroCusto.get_all_active()
+        if centros:
+            self.centro_custo_id.choices = [
+                (cc.id, f"{cc.codigo} - {cc.descricao}") 
+                for cc in centros
+            ]
+        else:
+            # If no cost centers exist, make it optional
+            self.centro_custo_id.choices = [(0, 'Nenhum centro de custo cadastrado')]
+            self.centro_custo_id.validators = [Optional()]
     
     def validate_patrimonio(self, patrimonio):
         """Validate patrimonio uniqueness"""

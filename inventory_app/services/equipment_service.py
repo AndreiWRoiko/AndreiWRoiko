@@ -174,3 +174,152 @@ class EquipmentService:
                 'imported_count': 0,
                 'errors': []
             }
+
+    @staticmethod
+    def export_to_excel(query="", filters=None):
+        """Export equipment to Excel file"""
+        import pandas as pd
+        from io import BytesIO
+        from datetime import datetime
+        
+        # Get filtered equipment
+        base_query = Equipment.query
+        
+        if query:
+            from sqlalchemy import or_
+            search_filter = or_(
+                Equipment.patrimonio.ilike(f"%{query}%"),
+                Equipment.responsavel.ilike(f"%{query}%"),
+                Equipment.modelo.ilike(f"%{query}%"),
+                Equipment.marca.ilike(f"%{query}%"),
+                Equipment.fornecedor.ilike(f"%{query}%")
+            )
+            base_query = base_query.filter(search_filter)
+        
+        if filters:
+            if filters.get("uf"):
+                base_query = base_query.filter(Equipment.uf == filters["uf"])
+            if filters.get("status"):
+                base_query = base_query.filter(Equipment.status == filters["status"])
+            if filters.get("tipo_equipamento"):
+                base_query = base_query.filter(Equipment.tipo_equipamento == filters["tipo_equipamento"])
+            if filters.get("centro_custo_id"):
+                base_query = base_query.filter(Equipment.centro_custo_id == filters["centro_custo_id"])
+        
+        equipment_list = base_query.all()
+        
+        # Prepare data for export
+        data = []
+        for eq in equipment_list:
+            data.append({
+                "Patrimônio": eq.patrimonio,
+                "Tipo": eq.tipo_equipamento,
+                "Responsável": eq.responsavel,
+                "UF": eq.uf,
+                "Centro de Custo": eq.centro_custo.codigo if eq.centro_custo else "",
+                "CNPJ": eq.cnpj,
+                "Fornecedor": eq.fornecedor,
+                "Marca": eq.marca,
+                "Modelo": eq.modelo,
+                "Status": eq.status,
+                "Valor": eq.valor,
+                "Processador": eq.processador,
+                "Memória RAM": eq.memoria_ram,
+                "HD/SSD": eq.hd_ssd,
+                "Sistema Operacional": eq.sistema_operacional,
+                "Licença Microsoft": eq.licenca_microsoft,
+                "Antivírus": "Sim" if eq.antivirus else "Não",
+                "Termo Assinado": "Sim" if eq.termo_assinado else "Não",
+                "Data de Aquisição": eq.data_aquisicao.strftime("%d/%m/%Y") if eq.data_aquisicao else "",
+                "Data de Baixa": eq.data_baixa.strftime("%d/%m/%Y") if eq.data_baixa else "",
+            })
+        
+        # Create DataFrame and export to BytesIO
+        df = pd.DataFrame(data)
+        output = BytesIO()
+        df.to_excel(output, index=False, engine="openpyxl")
+        output.seek(0)
+        
+        return output
+
+    @staticmethod
+    def export_to_pdf(query="", filters=None):
+        """Export equipment to PDF file"""
+        from reportlab.lib.pagesizes import A4, landscape
+        from reportlab.lib import colors
+        from reportlab.lib.units import cm
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+        from reportlab.lib.styles import getSampleStyleSheet
+        from io import BytesIO
+        from datetime import datetime
+        
+        # Get filtered equipment
+        base_query = Equipment.query
+        
+        if query:
+            from sqlalchemy import or_
+            search_filter = or_(
+                Equipment.patrimonio.ilike(f"%{query}%"),
+                Equipment.responsavel.ilike(f"%{query}%"),
+                Equipment.modelo.ilike(f"%{query}%"),
+                Equipment.marca.ilike(f"%{query}%"),
+                Equipment.fornecedor.ilike(f"%{query}%")
+            )
+            base_query = base_query.filter(search_filter)
+        
+        if filters:
+            if filters.get("uf"):
+                base_query = base_query.filter(Equipment.uf == filters["uf"])
+            if filters.get("status"):
+                base_query = base_query.filter(Equipment.status == filters["status"])
+            if filters.get("tipo_equipamento"):
+                base_query = base_query.filter(Equipment.tipo_equipamento == filters["tipo_equipamento"])
+            if filters.get("centro_custo_id"):
+                base_query = base_query.filter(Equipment.centro_custo_id == filters["centro_custo_id"])
+        
+        equipment_list = base_query.all()
+        
+        # Create PDF in memory
+        output = BytesIO()
+        doc = SimpleDocTemplate(output, pagesize=landscape(A4))
+        elements = []
+        
+        # Title
+        styles = getSampleStyleSheet()
+        data_hora = datetime.now().strftime("%d/%m/%Y %H:%M")
+        title = Paragraph(f"<b>Relatório de Equipamentos</b><br/>Gerado em: {data_hora}", styles["Title"])
+        elements.append(title)
+        elements.append(Spacer(1, 0.5*cm))
+        
+        # Table data
+        data = [["Patrimônio", "Tipo", "Responsável", "UF", "Modelo", "Status", "Valor"]]
+        for eq in equipment_list:
+            data.append([
+                eq.patrimonio,
+                eq.tipo_equipamento,
+                eq.responsavel[:20] if eq.responsavel else "",
+                eq.uf,
+                eq.modelo[:25] if eq.modelo else "",
+                eq.status,
+                f"R$ {eq.valor:.2f}" if eq.valor else ""
+            ])
+        
+        # Create table
+        table = Table(data)
+        table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, 0), 10),
+            ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+            ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+            ("GRID", (0, 0), (-1, -1), 1, colors.black),
+            ("FONTSIZE", (0, 1), (-1, -1), 8),
+        ]))
+        
+        elements.append(table)
+        doc.build(elements)
+        output.seek(0)
+        
+        return output

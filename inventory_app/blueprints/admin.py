@@ -78,8 +78,10 @@ def approve_user(user_id):
     if form.validate_on_submit():
         try:
             if form.action.data == 'approve':
+                # Update user role before approval
+                user.role = form.role.data
                 AuthService.approve_user(user_id, current_user)
-                flash(f'Usuário {user.username} aprovado com sucesso!', 'success')
+                flash(f'Usuário {user.username} aprovado com sucesso como {form.role.data}!', 'success')
             elif form.action.data == 'reject':
                 if not form.rejection_reason.data:
                     flash('Motivo da recusa é obrigatório.', 'error')
@@ -203,3 +205,41 @@ def system_info():
     }
     
     return render_template('admin/system_info.html', info=system_info)
+
+
+@admin_bp.route("/users/<int:user_id>/edit", methods=["GET", "POST"])
+@login_required
+def edit_user(user_id):
+    """Edit user details"""
+    if not current_user.has_permission("manage_users"):
+        flash("Sem permissão para editar usuários.", "error")
+        return redirect(url_for("admin.users"))
+    
+    user = User.query.get_or_404(user_id)
+    from inventory_app.forms.auth_forms import RegistrationForm
+    
+    form = RegistrationForm(obj=user)
+    # Remove password requirement for editing
+    form.password.validators = []
+    form.confirm_password.validators = []
+    
+    if form.validate_on_submit():
+        try:
+            user.username = form.username.data
+            user.email = form.email.data
+            user.first_name = form.first_name.data
+            user.last_name = form.last_name.data
+            user.role = form.role.data
+            
+            # Only update password if provided
+            if form.password.data:
+                user.set_password(form.password.data)
+            
+            from inventory_app.extensions import db
+            db.session.commit()
+            flash(f"Usuário {user.username} atualizado com sucesso!", "success")
+            return redirect(url_for("admin.users"))
+        except Exception as e:
+            flash(f"Erro ao atualizar usuário: {str(e)}", "error")
+    
+    return render_template("admin/create_user.html", form=form, user=user, title="Editar Usuário")

@@ -4,12 +4,14 @@ Inventory Blueprint - Equipment management routes
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, send_file
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
+from datetime import datetime
 import os
 import tempfile
 
 from inventory_app.services.equipment_service import EquipmentService
 from inventory_app.forms.equipment_forms import EquipmentForm, EquipmentSearchForm, ImportForm
-from inventory_app.models.equipment import Equipment
+from inventory_app.models.equipment import Equipment, CentroCusto
+from inventory_app.extensions import db
 
 inventory_bp = Blueprint('inventory', __name__)
 
@@ -227,3 +229,69 @@ def import_equipment():
             flash(f'Erro ao processar arquivo: {str(e)}', 'error')
     
     return render_template('import_form.html', form=form)
+
+
+@inventory_bp.route('/export/excel')
+@login_required
+def export_excel():
+    """Export equipment to Excel"""
+    if not current_user.has_permission('view'):
+        flash('Sem permissão para exportar equipamentos.', 'error')
+        return redirect(url_for('inventory.equipment_list'))
+    
+    try:
+        # Get all equipment or filtered equipment based on query params
+        query = request.args.get('query', '')
+        filters = {
+            'uf': request.args.get('uf', ''),
+            'status': request.args.get('status', ''),
+            'tipo_equipamento': request.args.get('tipo_equipamento', ''),
+            'centro_custo_id': request.args.get('centro_custo_id', 0, type=int),
+        }
+        filters = {k: v for k, v in filters.items() if v != '' and v != 0}
+        
+        # Create Excel file in memory
+        output = EquipmentService.export_to_excel(query, filters)
+        
+        return send_file(
+            output,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=f'equipamentos_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
+        )
+    except Exception as e:
+        flash(f'Erro ao exportar: {str(e)}', 'error')
+        return redirect(url_for('inventory.equipment_list'))
+
+
+@inventory_bp.route('/export/pdf')
+@login_required
+def export_pdf():
+    """Export equipment to PDF"""
+    if not current_user.has_permission('view'):
+        flash('Sem permissão para exportar equipamentos.', 'error')
+        return redirect(url_for('inventory.equipment_list'))
+    
+    try:
+        query = request.args.get('query', '')
+        filters = {
+            'uf': request.args.get('uf', ''),
+            'status': request.args.get('status', ''),
+            'tipo_equipamento': request.args.get('tipo_equipamento', ''),
+            'centro_custo_id': request.args.get('centro_custo_id', 0, type=int),
+        }
+        filters = {k: v for k, v in filters.items() if v != '' and v != 0}
+        
+        output = EquipmentService.export_to_pdf(query, filters)
+        
+        return send_file(
+            output,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=f'equipamentos_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf'
+        )
+    except Exception as e:
+        flash(f'Erro ao exportar: {str(e)}', 'error')
+        return redirect(url_for('inventory.equipment_list'))
+
+

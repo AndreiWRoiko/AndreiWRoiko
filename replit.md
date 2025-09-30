@@ -81,6 +81,25 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (September 30, 2025)
 
+### Export Functionality Security Enhancement - COMPLETED (September 30, 2025)
+- ✅ **Secure Export Implementation**: Implemented safe Excel and PDF export functionality
+  - Replaced temporary file handling with in-memory BytesIO buffers
+  - Eliminated security risk of persistent temporary files containing sensitive data
+  - Export methods now use memory-only processing (no disk writes)
+  - Proper buffer management with seek(0) before returning to send_file
+- ✅ **Export Features**:
+  - Excel export with comprehensive equipment data (pandas + openpyxl)
+  - PDF export with formatted tables and report headers (reportlab)
+  - Filter support: UF, status, tipo_equipamento, centro_custo_id
+  - Search functionality across patrimônio, responsável, modelo, marca, fornecedor
+  - Permission-gated access (requires 'view' permission)
+  - Automatic timestamped filenames for downloads
+- ✅ **Security Improvements**:
+  - No temporary files left on disk (prevents data leaks)
+  - No file descriptor leaks (proper memory buffer management)
+  - Parameterized SQLAlchemy queries (prevents SQL injection)
+  - Authorized access only (permission checks in routes)
+
 ### Fresh GitHub Clone Setup - COMPLETED (September 30, 2025)
 - ✅ **Fresh Clone**: Successfully imported and configured fresh GitHub clone for Replit environment
 - ✅ **Dependencies**: All Python packages installed via UV package manager (uv sync)

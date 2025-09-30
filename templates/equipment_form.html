@@ -111,7 +111,7 @@
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     {{ form.cnpj.label(class="form-label") }}
-                                    {{ form.cnpj(class="form-select" + (" is-invalid" if form.cnpj.errors else "")) }}
+                                    {{ form.cnpj(class="form-control" + (" is-invalid" if form.cnpj.errors else ""), rows=3) }}
                                     {% if form.cnpj.errors %}
                                         <div class="invalid-feedback">
                                             {% for error in form.cnpj.errors %}{{ error }}{% endfor %}
@@ -120,7 +120,7 @@
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     {{ form.fornecedor.label(class="form-label") }}
-                                    {{ form.fornecedor(class="form-select" + (" is-invalid" if form.fornecedor.errors else "")) }}
+                                    {{ form.fornecedor(class="form-control" + (" is-invalid" if form.fornecedor.errors else "")) }}
                                     {% if form.fornecedor.errors %}
                                         <div class="invalid-feedback">
                                             {% for error in form.fornecedor.errors %}{{ error }}{% endfor %}
@@ -584,7 +584,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="centroCustoForm">
-                <input type="hidden" name="csrf_token" value=""/>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="codigo" class="form-label">Código</label>

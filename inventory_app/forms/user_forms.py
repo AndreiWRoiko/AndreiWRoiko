@@ -8,6 +8,11 @@ from wtforms.validators import DataRequired, Length
 
 class UserApprovalForm(FlaskForm):
     """User approval/rejection form"""
+    role = SelectField('Perfil', choices=[
+        ('ADM', 'Administrador - Acesso total'),
+        ('Suporte', 'Suporte - Visualização e edição'),
+        ('Controladoria', 'Controladoria - Apenas visualização')
+    ], validators=[DataRequired()])
     action = SelectField('Ação', choices=[
         ('approve', 'Aprovar'),
         ('reject', 'Recusar')

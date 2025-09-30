@@ -57,3 +57,42 @@ def health_check():
         'service': 'Equipment Inventory System',
         'database': 'PostgreSQL connected' if db.engine else 'No database'
     })
+
+
+@main_bp.route("/centro-custo/new", methods=["POST"])
+@login_required
+def create_centro_custo():
+    """Create new cost center via AJAX"""
+    from inventory_app.models.equipment import CentroCusto
+    from flask import request
+    
+    if not current_user.has_permission("create"):
+        return jsonify({"success": False, "message": "Sem permissão"}), 403
+    
+    try:
+        codigo = request.form.get("codigo")
+        descricao = request.form.get("descricao")
+        
+        if not codigo or not descricao:
+            return jsonify({"success": False, "message": "Código e descrição são obrigatórios"}), 400
+        
+        # Check if codigo already exists
+        existing = CentroCusto.query.filter_by(codigo=codigo).first()
+        if existing:
+            return jsonify({"success": False, "message": f"Código {codigo} já existe"}), 400
+        
+        # Create new centro custo
+        centro_custo = CentroCusto(codigo=codigo, descricao=descricao, ativo=True)
+        db.session.add(centro_custo)
+        db.session.commit()
+        
+        return jsonify({
+            "success": True,
+            "message": f"Centro de custo {codigo} criado com sucesso!",
+            "id": centro_custo.id,
+            "codigo": centro_custo.codigo,
+            "descricao": centro_custo.descricao
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "message": f"Erro: {str(e)}"}), 500
