@@ -16,26 +16,26 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Flask App"
+args = "Flask Equipment Inventory"
 
 [[workflows.workflow]]
-name = "Flask App"
+name = "Flask Equipment Inventory"
 author = "agent"
-
-[workflows.workflow.metadata]
-outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = ".pythonlibs/bin/python main.py"
 waitForPort = 5000
 
+[workflows.workflow.metadata]
+outputType = "webview"
+
 [[ports]]
 localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 33061
+localPort = 41905
 externalPort = 3000
 
 [deployment]
