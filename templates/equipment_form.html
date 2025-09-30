@@ -329,21 +329,6 @@
                                     {% endif %}
                                     <div class="form-text">URL completa para o documento de termos assinado</div>
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    {{ form.senha.label(class="form-label") }}
-                                    <div class="input-group">
-                                        {{ form.senha(class="form-control" + (" is-invalid" if form.senha.errors else ""), id="senhaField", type="password") }}
-                                        <button class="btn btn-outline-secondary" type="button" id="toggleSenha" title="Mostrar/Ocultar senha">
-                                            <i class="fas fa-eye" id="senhaIcon"></i>
-                                        </button>
-                                    </div>
-                                    {% if form.senha.errors %}
-                                        <div class="invalid-feedback">
-                                            {% for error in form.senha.errors %}{{ error }}{% endfor %}
-                                        </div>
-                                    {% endif %}
-                                    <div class="form-text">Senha para acesso ao equipamento</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -466,25 +451,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     value = value.replace(/^(\d{2})(\d)/, '($1) $2');
                 }
                 e.target.value = value;
-            }
-        });
-    }
-
-    // Password visibility toggle
-    const toggleSenha = document.getElementById('toggleSenha');
-    const senhaField = document.getElementById('senhaField');
-    const senhaIcon = document.getElementById('senhaIcon');
-    
-    if (toggleSenha && senhaField && senhaIcon) {
-        toggleSenha.addEventListener('click', function() {
-            if (senhaField.type === 'password') {
-                senhaField.type = 'text';
-                senhaIcon.className = 'fas fa-eye-slash';
-                toggleSenha.title = 'Ocultar senha';
-            } else {
-                senhaField.type = 'password';
-                senhaIcon.className = 'fas fa-eye';
-                toggleSenha.title = 'Mostrar senha';
             }
         });
     }

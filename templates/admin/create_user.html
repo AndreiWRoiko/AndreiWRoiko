@@ -128,27 +128,6 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                {{ form.auto_approve.label(class="form-label") }}
-                                <div class="form-check">
-                                    {{ form.auto_approve(class="form-check-input") }}
-                                    <label class="form-check-label" for="{{ form.auto_approve.id }}">
-                                        Aprovar automaticamente
-                                    </label>
-                                </div>
-                                {% if form.auto_approve.errors %}
-                                    <div class="text-danger small">
-                                        {% for error in form.auto_approve.errors %}
-                                            <div>{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                                <div class="form-text">
-                                    Se desmarcado, o usuário ficará pendente de aprovação.
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">

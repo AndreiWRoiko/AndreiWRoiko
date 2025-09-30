@@ -36,32 +36,24 @@
                 <form method="GET" id="search-form">
                     <div class="row">
                         <div class="col-md-3 mb-3">
-                            {{ search_form.search_term.label(class="form-label") }}
-                            {{ search_form.search_term(class="form-control", placeholder="Buscar por responsável, modelo, patrimônio...") }}
+                            <label class="form-label">Buscar</label>
+                            <input type="text" name="query" class="form-control" placeholder="Buscar por responsável, modelo, patrimônio..." value="{{ query }}">
                         </div>
                         <div class="col-md-2 mb-3">
-                            {{ search_form.uf.label(class="form-label") }}
-                            {{ search_form.uf(class="form-select") }}
+                            {{ form.uf.label(class="form-label") }}
+                            {{ form.uf(class="form-select") }}
                         </div>
                         <div class="col-md-2 mb-3">
-                            {{ search_form.status.label(class="form-label") }}
-                            {{ search_form.status(class="form-select") }}
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            {{ search_form.cnpj.label(class="form-label") }}
-                            {{ search_form.cnpj(class="form-select") }}
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            {{ search_form.marca.label(class="form-label") }}
-                            {{ search_form.marca(class="form-select") }}
+                            {{ form.status.label(class="form-label") }}
+                            {{ form.status(class="form-select") }}
                         </div>
                         <div class="col-md-1 mb-3">
-                            {{ search_form.cc.label(class="form-label") }}
-                            {{ search_form.cc(class="form-select") }}
+                            {{ form.centro_custo_id.label(class="form-label") }}
+                            {{ form.centro_custo_id(class="form-select") }}
                         </div>
                         <div class="col-md-1 mb-3">
-                            {{ search_form.tipo_equipamento.label(class="form-label") }}
-                            {{ search_form.tipo_equipamento(class="form-select") }}
+                            {{ form.tipo_equipamento.label(class="form-label") }}
+                            {{ form.tipo_equipamento(class="form-select") }}
                         </div>
                         <div class="col-md-1 mb-3 d-flex align-items-end">
                             <button type="submit" class="btn btn-primary w-100">
@@ -73,9 +65,6 @@
                         <div class="col-12">
                             <a href="{{ url_for('inventory.equipment_list') }}" class="btn btn-secondary me-2">
                                 <i class="fas fa-times me-1"></i>Limpar Filtros
-                            </a>
-                            <a href="{{ url_for('inventory.download_template') }}" class="btn btn-warning me-2">
-                                <i class="fas fa-download me-1"></i>Modelo
                             </a>
                             <a href="{{ url_for('inventory.export_excel', **request.args) }}" class="btn btn-success me-2">
                                 <i class="fas fa-file-excel me-1"></i>Excel
