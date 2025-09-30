@@ -1,280 +1,51 @@
 # Equipment Inventory System
 
 ## Overview
-
-This is a Flask-based equipment inventory management system designed for tracking IT equipment across multiple locations and organizations. The system provides comprehensive equipment tracking with features including equipment registration, status monitoring, location management, and detailed reporting. It's built with a focus on Brazilian business requirements, supporting UF (state) tracking, CNPJ management, and Portuguese language interfaces.
+This Flask-based Equipment Inventory System tracks IT equipment across various locations and organizations, with a focus on Brazilian business requirements (UF tracking, CNPJ management, Portuguese language). It supports equipment registration, status monitoring, location management, and detailed reporting, providing a comprehensive and scalable solution for inventory management. The system is designed for a professional and modern user experience.
 
 ## User Preferences
-
 Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
-### Web Framework Architecture
-- **Flask Application**: Core web framework with modular structure
-- **SQLAlchemy ORM**: Database abstraction layer with declarative base model
-- **Flask-WTF Forms**: Form handling and validation with CSRF protection
-- **Template Engine**: Jinja2 templating with Bootstrap-based responsive UI
+### Web Framework and UI/UX
+The system uses a Flask application with a modular structure, SQLAlchemy ORM for database abstraction, and Flask-WTF for form handling. The frontend is built with Bootstrap 5 (dark theme responsive UI), Jinja2 templating, Plotly.js for interactive data visualization, and Font Awesome for iconography. The dashboard features a three-tier layout with Executive KPIs, interactive charts for compliance and analytics, and drill-down tables.
 
 ### Database Design
-- **Single Table Model**: Equipment table storing all inventory data
-- **PostgreSQL Database**: Production-ready database with full feature support
-- **Connection Pooling**: Configured with pool recycling and pre-ping for reliability
-- **Automatic Schema Creation**: Database tables created on application startup
-- **Data Import/Export**: Excel import functionality with template download and comprehensive validation
+A PostgreSQL database is used as the primary data store, with a single table model for equipment data. It includes connection pooling with recycling and pre-ping for reliability. The database schema is automatically created on application startup, and sample data is pre-populated for testing.
 
-### Frontend Architecture
-- **Bootstrap 5**: Dark theme responsive UI framework
-- **Plotly.js**: Interactive data visualization for dashboard charts
-- **Font Awesome**: Icon library for consistent visual elements
-- **Progressive Enhancement**: JavaScript features that gracefully degrade
-
-### Data Management
-- **Form Validation**: Server-side validation with WTForms
-- **Export Capabilities**: Excel and PDF export functionality
-- **Import Functionality**: Excel file import with duplicate checking and data validation
-- **Search and Filtering**: Multi-criteria equipment search system
-- **Pagination**: Efficient data display for large equipment lists
-- **Template Download**: Excel template generation for consistent data import format
+### Data Management and Features
+Key features include comprehensive form validation (server-side with WTForms), multi-criteria search and filtering, pagination for large datasets, and robust data import/export capabilities. Excel import supports template downloads and validation, while both Excel and PDF export functionalities are available, with security enhancements to use in-memory buffers instead of temporary files. The system also supports Brazilian Portuguese number formatting and dynamic handling of CNPJ values.
 
 ### Application Structure
-- **Modular Design**: Separated routes, models, forms, and utilities
-- **Template Inheritance**: Base template system for consistent UI
-- **Static Asset Management**: Organized CSS and JavaScript files
-- **Environment Configuration**: Flexible configuration via environment variables
+The application follows a modular design with separated routes, models, forms, and utilities within the `inventory_app/` package. It uses an application factory pattern, blueprint-based routing, a service layer for business logic, and Flask-Migrate for database migrations. Environment configuration is flexible via environment variables, and static assets are managed efficiently.
 
-### Security Features
-- **CSRF Protection**: Built-in form security
-- **Session Management**: Secure session handling with configurable secret keys
-- **Proxy Support**: ProxyFix middleware for deployment behind reverse proxies
+### Security
+Security features include CSRF protection, secure session management, and proxy support with Werkzeug's ProxyFix middleware. Export functionalities are implemented with security in mind, utilizing in-memory processing to prevent sensitive data leaks.
 
 ## External Dependencies
 
 ### Frontend Libraries
-- **Bootstrap 5**: CSS framework from CDN with agent-specific dark theme
-- **Font Awesome 6.4.0**: Icon library from cdnjs.cloudflare.com
-- **Plotly.js**: Data visualization library from cdn.plot.ly
+- **Bootstrap 5**: CSS framework (CDN)
+- **Font Awesome 6.4.0**: Icon library (cdnjs.cloudflare.com)
+- **Plotly.js**: Data visualization library (cdn.plot.ly)
 
 ### Python Packages
-- **Flask**: Web framework and core functionality
-- **Flask-SQLAlchemy**: Database ORM integration
-- **Flask-WTF**: Form handling and validation
+- **Flask**: Web framework
+- **Flask-SQLAlchemy**: ORM integration
+- **Flask-WTF**: Form handling
 - **WTForms**: Form field types and validators
-- **Pandas**: Data manipulation for export features
-- **ReportLab**: PDF generation capabilities
+- **Pandas**: Data manipulation for exports
+- **ReportLab**: PDF generation
 - **Plotly**: Server-side chart generation
 - **Werkzeug**: WSGI utilities and proxy middleware
+- **Gunicorn**: Production WSGI server
+- **Psycopg2**: PostgreSQL adapter
 
 ### Database Support
-- **PostgreSQL**: Primary database with full production capabilities
-- **SQLite**: Fallback option for development
-- **Connection Management**: Automatic pool management and health checks
-- **Sample Data**: Pre-populated with example equipment records for testing
+- **PostgreSQL**: Primary production database
 
 ### Deployment Infrastructure
-- **Environment Variables**: Configuration via SESSION_SECRET and DATABASE_URL
+- **Environment Variables**: `SESSION_SECRET`, `DATABASE_URL`
 - **WSGI Compatibility**: Standard WSGI application structure
-- **Production Server**: Gunicorn WSGI server with autoscaling deployment configuration
-- **Development Server**: Built-in Flask development server with debugging
-- **Static File Serving**: Flask static file handling for CSS and JavaScript assets
-- **Replit Integration**: Fully configured for Replit environment with PostgreSQL database
-
-## Recent Changes (September 30, 2025)
-
-### Advanced Dashboard Redesign - COMPLETED (September 30, 2025 - Latest)
-- ✅ **Complete Dashboard Overhaul**: Redesigned with modern three-tier layout
-  - **Tier 1 - Executive KPIs**: 4 key metrics cards with gradient designs
-    - Total de Equipamentos with active count
-    - Taxa de Utilização with percentage calculation
-    - Valor Total do Ativo in Brazilian Real
-    - Taxa de Proteção (antivirus coverage)
-  - **Tier 2 - Compliance & Analytics**: 8 interactive charts
-    - Proteção Antivírus (doughnut chart with percentage badges)
-    - Termos Assinados (doughnut chart with compliance status)
-    - Status por Tipo (stacked horizontal bar chart)
-    - Distribuição Geográfica UF (bar chart)
-    - Distribuição por CNPJ (combo bar+line chart)
-    - Distribuição de Valor (pie chart with price ranges)
-    - Top 10 Marcas (horizontal bar chart)
-    - Status Geral (doughnut chart)
-  - **Tier 3 - Drill-down Tables**: Activity feeds and top performers
-    - Top Responsáveis table with ranking badges and value tracking
-    - Recent additions activity feed with equipment details
-    - Quick actions panel for common operations
-- ✅ **Enhanced Backend Analytics**: Added 9 new data methods
-  - `get_by_marca()` - Top 10 brands analysis
-  - `get_by_cnpj()` - CNPJ distribution with values
-  - `get_antivirus_stats()` - Compliance statistics with percentages
-  - `get_termo_stats()` - Terms compliance with percentages
-  - `get_value_distribution()` - Price range distribution
-  - `get_top_responsaveis()` - Top equipment holders
-  - `get_recent_additions()` - Latest equipment entries
-  - `get_status_by_tipo()` - Cross-tabulation of status by type
-  - Updated service layer to expose all analytics
-- ✅ **Modern Design Features**:
-  - Brazilian Portuguese number formatting (pt-BR)
-  - Responsive 12-column grid layout
-  - Smooth animations on scroll with intersection observer
-  - Gradient KPI cards with hover effects
-  - Consistent color palette across all charts
-  - Chart.js 4.4.1 with advanced configurations
-  - Stacked bars, combo charts, and interactive tooltips
-  - Professional card shadows and rounded corners
-- ✅ **UX Enhancements**:
-  - Compliance badges with color-coded status (success/warning/danger)
-  - Rank badges for top performers (gold/silver/bronze)
-  - Progress bars showing distribution
-  - Activity feed with equipment type icons
-  - Currency formatted values throughout
-  - Accessible design with proper contrast
-- Application tested and dashboard loading successfully
-
-### CNPJ Dropdown Configuration - COMPLETED (September 30, 2025)
-- ✅ **CNPJ Field Updated**: Converted from text field to dropdown with company options
-  - Added 8 company CNPJs as selectable options:
-    - ATENAS SERVIÇO DE APOIO LTDA - 24.329.959/0001-33
-    - TELOS CONSULTORIA EMPRESARIAL LTDA - 15.541.957/0001-12
-    - OPUS CONSULTORIA LTDA - 14.706.283/0001-04
-    - OPUS CONSULTORIA LTDA - 14.706.283/0002-87
-    - OPUS SERVIÇOS ESPECIALIZADOS LTDA - 42.537.087/0001-80
-    - OPUS MANUTENCAO LTDA - 49.996.326/0001-00
-    - OPUS LOGISTICA LTDA - 50.016.866/0001-69
-    - OPUS SERVICOS ESPECIALIZADOS LTDA - 42.537.087/0002-61
-  - Updated in `inventory_app/forms/equipment_forms.py`
-  - Changed from TextAreaField to SelectField for better data consistency
-  - **Legacy Data Handling**: Implemented smart CNPJ preservation
-    - Uses `validate_choice=False` to allow non-predefined values
-    - Dynamically adds legacy CNPJ values to dropdown when editing (marked as "Legado")
-    - Prevents data loss when editing equipment with existing CNPJ values
-    - New equipment uses curated dropdown, existing equipment preserves original values
-  - Application restarted and changes applied successfully
-  - Architect reviewed and approved the implementation
-
-### Fresh GitHub Import Setup - COMPLETED (September 30, 2025)
-- ✅ **Fresh GitHub Clone**: Successfully imported fresh repository and configured for Replit environment
-- ✅ **Python Environment**: Python 3.11 with UV package manager
-  - Executed `uv sync` to install 46 packages from pyproject.toml and uv.lock
-  - Virtual environment created at `.pythonlibs/`
-  - All dependencies installed successfully (Flask, SQLAlchemy, Gunicorn, etc.)
-- ✅ **PostgreSQL Database**: Created new PostgreSQL database with Replit environment variables
-  - Database URL automatically set via DATABASE_URL environment variable
-  - Database tables automatically created on first application run
-  - Connection pooling configured with pre-ping and 300s recycling
-  - Auto-detection of Replit environment via REPL_ID for proper database configuration
-- ✅ **Admin User Created**: Default administrator account set up
-  - **Username:** admin
-  - **Password:** Admin123!
-  - **Email:** admin@inventory.local
-  - **Role:** ADM (Administrator)
-  - **Status:** Approved and active
-- ✅ **Workflow Configuration**: Development server running on port 5000
-  - Command: `.pythonlibs/bin/python main.py`
-  - Server bound to 0.0.0.0:5000 for Replit proxy compatibility
-  - Webview output type for frontend display
-  - Application tested and verified working correctly
-  - Login page displays properly with modern UI
-- ✅ **Deployment Configuration**: Configured for autoscale production deployment
-  - Command: `bash -c ".pythonlibs/bin/gunicorn --bind 0.0.0.0:5000 --reuse-port --workers 2 wsgi:app"`
-  - Production-ready Gunicorn WSGI server configuration
-  - Autoscale deployment type for stateless web serving
-  - 2 workers for handling concurrent requests
-- ✅ **Application Structure**: Uses modern application factory pattern
-  - Main app in `inventory_app/` package with blueprints
-  - Modular structure with services, models, forms, and blueprints
-  - Legacy files (app.py, routes.py, etc.) present but not used by main.py
-  - Application uses `main.py` → `inventory_app/create_app()` pattern
-
-## Recent Changes (Previous - September 30, 2025)
-
-### Export Functionality Security Enhancement - COMPLETED (September 30, 2025)
-- ✅ **Secure Export Implementation**: Implemented safe Excel and PDF export functionality
-  - Replaced temporary file handling with in-memory BytesIO buffers
-  - Eliminated security risk of persistent temporary files containing sensitive data
-  - Export methods now use memory-only processing (no disk writes)
-  - Proper buffer management with seek(0) before returning to send_file
-- ✅ **Export Features**:
-  - Excel export with comprehensive equipment data (pandas + openpyxl)
-  - PDF export with formatted tables and report headers (reportlab)
-  - Filter support: UF, status, tipo_equipamento, centro_custo_id
-  - Search functionality across patrimônio, responsável, modelo, marca, fornecedor
-  - Permission-gated access (requires 'view' permission)
-  - Automatic timestamped filenames for downloads
-- ✅ **Security Improvements**:
-  - No temporary files left on disk (prevents data leaks)
-  - No file descriptor leaks (proper memory buffer management)
-  - Parameterized SQLAlchemy queries (prevents SQL injection)
-  - Authorized access only (permission checks in routes)
-
-### Fresh GitHub Clone Setup - COMPLETED (September 30, 2025)
-- ✅ **Fresh Clone**: Successfully imported and configured fresh GitHub clone for Replit environment
-- ✅ **Dependencies**: All Python packages installed via UV package manager (uv sync)
-  - Created virtual environment at `.pythonlibs/` with 44 packages
-  - All dependencies from pyproject.toml and uv.lock installed successfully
-- ✅ **Database Setup**: PostgreSQL database configured and tables initialized successfully
-  - Database URL: `postgresql://postgres:password@helium/heliumdb`
-  - All tables created automatically on first run
-- ✅ **Admin User**: Created default admin user
-  - **Username:** admin
-  - **Password:** Admin123!
-  - **Email:** admin@inventory.local
-  - **Role:** ADM (Administrator)
-  - **Status:** Approved and ready for use
-- ✅ **Workflow Configuration**: Flask app running on port 5000 with webview output
-  - Uses `.pythonlibs/bin/python main.py` to run from virtual environment
-  - Server bound to 0.0.0.0:5000 for Replit proxy support
-  - Application tested and verified working correctly
-- ✅ **Deployment Configuration**: Configured for autoscale deployment
-  - Uses Gunicorn production server with 2 workers
-  - Command: `.pythonlibs/bin/gunicorn --bind=0.0.0.0:5000 --reuse-port --workers=2 wsgi:app`
-- ✅ **Type Hints Fixed**: Updated type annotations in db.py for Python 3.11 compatibility
-
-### Previous Development History (September 29, 2025)
-- ✅ **Complete System Restructuring**: Reorganized entire codebase into professional modular architecture
-  - `inventory_app/` - Main application package with application factory pattern
-  - `inventory_app/models/` - Database models (User, Equipment, CentroCusto, Kanban)  
-  - `inventory_app/services/` - Business logic layer (AuthService, EquipmentService, UserService)
-  - `inventory_app/blueprints/` - Route organization (auth, main, inventory, admin)
-  - `inventory_app/forms/` - WTForms for validation
-  - `inventory_app/config.py` - Environment-based configuration management
-  - `inventory_app/extensions.py` - Flask extensions (SQLAlchemy, Flask-Login, Flask-Migrate)
-- ✅ **Database Optimizations**: Added indexes, proper relationships, connection pooling for PostgreSQL
-- ✅ **Security Improvements**: Enhanced configuration management, proper secret handling
-- ✅ **Development Tools**: Added Flask-Migrate for database migrations, management CLI commands
-
-### Configuration Details
-- **Server**: Flask development server for development, Gunicorn for production deployment
-- **Database**: PostgreSQL with connection pooling and health checks
-- **Host Configuration**: Bound to 0.0.0.0:5000 to allow proxy access through Replit
-- **Environment Secrets**: SESSION_SECRET and DATABASE_URL properly configured
-- **Workflow Status**: Running successfully on port 5000 with webview interface
-
-### Environment Variables for Production
-For production deployment, configure these environment variables:
-- **SESSION_SECRET**: Secure session encryption key (auto-generated in development)
-- **DATABASE_URL**: PostgreSQL connection string (defaults to SQLite in development)
-
-### First-Time Setup
-1. **Admin user has been created and configured:**
-   - **Username:** admin
-   - **Password:** Admin123
-   - **Role:** ADM (Administrator)
-   - **Status:** Approved and ready for use
-
-2. **Application Features Available:**
-   - User authentication and role-based access control
-   - Equipment inventory management with full CRUD operations
-   - PostgreSQL database with proper data persistence
-   - Excel import/export functionality
-   - Professional responsive UI with Bootstrap
-   - Data visualization and reporting features
-
-3. **System Architecture Successfully Implemented:**
-   - Modular package structure with separation of concerns
-   - Application factory pattern for Flask initialization
-   - Service layer for business logic organization
-   - Blueprint-based routing system for code organization
-   - PostgreSQL-only database configuration (no SQLite fallback)
-   - Flask-Migrate for database schema management
-
-### Ready for Production
-The application has been completely restructured and is fully ready for production deployment using Replit's publishing system. The system provides a professional, scalable equipment inventory management solution.
+- **Replit Integration**: Fully configured for the Replit environment.
