@@ -81,7 +81,7 @@ class DatabaseConfig:
             }
         }
 
-def get_database_config(environment: str = None) -> Dict[str, Any]:
+def get_database_config(environment: str | None = None) -> Dict[str, Any]:
     """
     Retorna a configuração do banco de dados baseada no ambiente
     
@@ -117,12 +117,12 @@ def get_database_config(environment: str = None) -> Dict[str, Any]:
     
     return config
 
-def get_connection_string(environment: str = None) -> str:
+def get_connection_string(environment: str | None = None) -> str:
     """Retorna apenas a string de conexão do banco"""
     config = get_database_config(environment)
     return config['DATABASE_URL']
 
-def get_engine_options(environment: str = None) -> Dict[str, Any]:
+def get_engine_options(environment: str | None = None) -> Dict[str, Any]:
     """Retorna apenas as opções do engine SQLAlchemy"""
     config = get_database_config(environment)
     return config.get('SQLALCHEMY_ENGINE_OPTIONS', {})
