@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Usuários Pendentes - Sistema de Inventário{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-user-clock me-2"></i>Usuários Pendentes de Aprovação
+            </h1>
+            <div>
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Voltar ao Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if pending_users %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        {{ pending_users|length }} usuário(s) aguardando aprovação
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Usuário</th>
+                                    <th>Email</th>
+                                    <th>Nome Completo</th>
+                                    <th>Data de Registro</th>
+                                    <th width="200">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in pending_users %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ user.username }}</strong>
+                                        <small class="d-block text-muted">ID: {{ user.id }}</small>
+                                    </td>
+                                    <td>{{ user.email }}</td>
+                                    <td>
+                                        {% if user.first_name or user.last_name %}
+                                            {{ user.display_name }}
+                                        {% else %}
+                                            <em class="text-muted">Não informado</em>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ user.created_at.strftime('%d/%m/%Y') }}
+                                        <small class="d-block text-muted">
+                                            {{ user.created_at.strftime('%H:%M') }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{{ url_for('approve_user', user_id=user.id) }}" 
+                                               class="btn btn-success" title="Aprovar usuário">
+                                                <i class="fas fa-check"></i> Aprovar
+                                            </a>
+                                            <button type="button" class="btn btn-danger" 
+                                                    onclick="showRejectModal({{ user.id }}, '{{ user.username }}')"
+                                                    title="Rejeitar usuário">
+                                                <i class="fas fa-times"></i> Rejeitar
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                    <h4>Não há usuários pendentes</h4>
+                    <p class="text-muted">Todos os usuários já foram aprovados ou rejeitados.</p>
+                    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary">
+                        <i class="fas fa-arrow-left me-1"></i>Voltar ao Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Modal para rejeitar usuário -->
+<div class="modal fade" id="rejectUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="rejectUserForm" method="post">
+                {% if csrf_token %}
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                {% endif %}
+                <input type="hidden" id="reject_user_id" name="user_id" value="">
+                <input type="hidden" name="action" value="reject">
+                
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user-times text-danger me-2"></i>
+                        Rejeitar Usuário
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                
+                <div class="modal-body">
+                    <p>Você está prestes a <strong>rejeitar</strong> o usuário <strong id="reject_username"></strong>.</p>
+                    
+                    <div class="mb-3">
+                        <label for="rejection_reason" class="form-label">
+                            <i class="fas fa-comment me-1"></i>Motivo da recusa <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" id="rejection_reason" name="rejection_reason" 
+                                  rows="4" placeholder="Descreva o motivo da recusa..." required></textarea>
+                        <div class="form-text">Este motivo será registrado no sistema para auditoria.</div>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Atenção:</strong> Esta ação não pode ser desfeita. 
+                        O usuário será notificado da recusa e poderá ser removido automaticamente após 30 dias.
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-user-times me-1"></i>Rejeitar Usuário
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function showRejectModal(userId, username) {
+    document.getElementById('reject_user_id').value = userId;
+    document.getElementById('reject_username').textContent = username;
+    document.getElementById('rejectUserForm').action = `/admin/users/reject/${userId}`;
+    document.getElementById('rejection_reason').value = '';
+    
+    var modal = new bootstrap.Modal(document.getElementById('rejectUserModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

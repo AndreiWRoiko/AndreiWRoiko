@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% block title %}Solicitação #{{ solicitacao.id }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Dados Principais -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-clipboard-list me-2"></i>Solicitação #{{ solicitacao.id }}
+                        </h4>
+                        <div>
+                            <span class="badge badge-lg bg-primary status-badge" data-status="{{ solicitacao.status }}">
+                                {{ solicitacao.status_display }}
+                            </span>
+                            <span class="badge badge-lg ms-2 bg-secondary priority-badge" data-priority="{{ solicitacao.prioridade }}">
+                                {{ solicitacao.prioridade.title() }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-user me-2"></i>Solicitante</h6>
+                            <p class="mb-1">{{ solicitacao.solicitante }}</p>
+                            <p class="text-muted small mb-3">{{ solicitacao.email_solicitante }}</p>
+                            
+                            <h6><i class="fas fa-laptop me-2"></i>Equipamento Solicitado</h6>
+                            <p class="mb-3">{{ solicitacao.tipo_equipamento.title() }}</p>
+                            
+                            <h6><i class="fas fa-map-marker-alt me-2"></i>Localização</h6>
+                            <p class="mb-1">{{ solicitacao.uf }} - {{ solicitacao.centro_custo.codigo }}: {{ solicitacao.centro_custo.descricao }}</p>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-calendar me-2"></i>Datas Importantes</h6>
+                            <p class="mb-1"><strong>Solicitação:</strong> {{ solicitacao.data_solicitacao.strftime('%d/%m/%Y %H:%M') }}</p>
+                            {% if solicitacao.data_limite_entrega %}
+                            <p class="mb-1 {% if solicitacao.esta_atrasado %}text-danger{% endif %}">
+                                <strong>Data Limite:</strong> {{ solicitacao.data_limite_entrega.strftime('%d/%m/%Y') }}
+                                {% if solicitacao.esta_atrasado %}
+                                    <i class="fas fa-exclamation-triangle ms-1"></i>
+                                {% endif %}
+                            </p>
+                            {% endif %}
+                            {% if solicitacao.data_entrega_prevista %}
+                            <p class="mb-1"><strong>Entrega Prevista:</strong> {{ solicitacao.data_entrega_prevista.strftime('%d/%m/%Y') }}</p>
+                            {% endif %}
+                            {% if solicitacao.data_entrega_real %}
+                            <p class="mb-1 text-success"><strong>Entrega Real:</strong> {{ solicitacao.data_entrega_real.strftime('%d/%m/%Y %H:%M') }}</p>
+                            {% endif %}
+                            
+                            <div class="mt-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>{{ solicitacao.dias_desde_solicitacao }} dias desde a solicitação
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6><i class="fas fa-align-left me-2"></i>Justificativa</h6>
+                    <p>{{ solicitacao.justificativa }}</p>
+                    
+                    {% if solicitacao.observacoes %}
+                    <h6><i class="fas fa-sticky-note me-2"></i>Observações</h6>
+                    <p>{{ solicitacao.observacoes }}</p>
+                    {% endif %}
+                    
+                    {% if solicitacao.endereco_entrega %}
+                    <h6><i class="fas fa-truck me-2"></i>Endereço de Entrega</h6>
+                    <p>{{ solicitacao.endereco_entrega }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Histórico de Status -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Histórico de Status</h5>
+                </div>
+                <div class="card-body">
+                    {% if solicitacao.historico_status %}
+                        <div class="timeline">
+                            {% for historico in solicitacao.historico_status|reverse %}
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-primary"></div>
+                                <div class="timeline-content">
+                                    <div class="d-flex justify-content-between">
+                                        <h6 class="mb-1">
+                                            {{ historico.status_anterior_display }} → {{ historico.status_novo_display }}
+                                        </h6>
+                                        <small class="text-muted">{{ historico.data_mudanca.strftime('%d/%m/%Y %H:%M') }}</small>
+                                    </div>
+                                    {% if historico.observacao %}
+                                        <p class="mb-1">{{ historico.observacao }}</p>
+                                    {% endif %}
+                                    {% if historico.responsavel_mudanca %}
+                                        <small class="text-muted">Por: {{ historico.responsavel_mudanca }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Nenhum histórico disponível.</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Verificação de Entrega -->
+            {% if solicitacao.verificacao_entrega %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-clipboard-check me-2"></i>Verificação de Entrega</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Checklist de Verificação</h6>
+                            <div class="progress mb-3">
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                     style="width: {% if solicitacao.verificacao_entrega.percentual_verificacao %}{{ solicitacao.verificacao_entrega.percentual_verificacao }}%{% else %}0%{% endif %}"
+                                     aria-valuenow="{% if solicitacao.verificacao_entrega.percentual_verificacao %}{{ solicitacao.verificacao_entrega.percentual_verificacao }}{% else %}0{% endif %}"
+                                     aria-valuemin="0" aria-valuemax="100">
+                                    {% if solicitacao.verificacao_entrega.percentual_verificacao %}{{ "%.0f"|format(solicitacao.verificacao_entrega.percentual_verificacao) }}%{% else %}0%{% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="checklist">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" disabled 
+                                           {% if solicitacao.verificacao_entrega.equipamento_funcionando %}checked{% endif %}>
+                                    <label class="form-check-label">Equipamento Funcionando</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" disabled 
+                                           {% if solicitacao.verificacao_entrega.numero_serie_conferido %}checked{% endif %}>
+                                    <label class="form-check-label">Número de Série Conferido</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" disabled 
+                                           {% if solicitacao.verificacao_entrega.acessorios_completos %}checked{% endif %}>
+                                    <label class="form-check-label">Acessórios Completos</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" disabled 
+                                           {% if solicitacao.verificacao_entrega.manual_entregue %}checked{% endif %}>
+                                    <label class="form-check-label">Manual Entregue</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h6>Responsáveis</h6>
+                            <p><strong>Verificação:</strong> {{ solicitacao.verificacao_entrega.responsavel_verificacao }}</p>
+                            <p><strong>Recebimento:</strong> {{ solicitacao.verificacao_entrega.responsavel_recebimento }}</p>
+                            
+                            {% if solicitacao.verificacao_entrega.observacoes_entrega %}
+                            <h6>Observações da Entrega</h6>
+                            <p>{{ solicitacao.verificacao_entrega.observacoes_entrega }}</p>
+                            {% endif %}
+                            
+                            {% if solicitacao.verificacao_entrega.problemas_identificados %}
+                            <h6 class="text-warning">Problemas Identificados</h6>
+                            <p>{{ solicitacao.verificacao_entrega.problemas_identificados }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Sidebar com Ações e Documentos -->
+        <div class="col-md-4">
+            <!-- Ações -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>Ações</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('solicitacao_update_status', id=solicitacao.id) }}" 
+                           class="btn btn-warning">
+                            <i class="fas fa-edit me-2"></i>Atualizar Status
+                        </a>
+                        
+                        {% if solicitacao.status == 'entregue' %}
+                        <a href="{{ url_for('solicitacao_verificacao_entrega', id=solicitacao.id) }}" 
+                           class="btn btn-success">
+                            <i class="fas fa-clipboard-check me-2"></i>Verificar Entrega
+                        </a>
+                        {% endif %}
+                        
+                        <a href="{{ url_for('solicitacao_edit', id=solicitacao.id) }}" 
+                           class="btn btn-primary">
+                            <i class="fas fa-pencil-alt me-2"></i>Editar Solicitação
+                        </a>
+                        
+                        <a href="{{ url_for('solicitacao_upload_documento', id=solicitacao.id) }}" 
+                           class="btn btn-info">
+                            <i class="fas fa-upload me-2"></i>Enviar Documento
+                        </a>
+                        
+                        <hr>
+                        
+                        <a href="{{ url_for('solicitacoes_list') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Voltar à Lista
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Documentos -->
+            {% if solicitacao.documentos %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-folder me-2"></i>Documentos</h5>
+                </div>
+                <div class="card-body">
+                    {% for documento in solicitacao.documentos %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                        <div>
+                            <i class="fas fa-file me-2"></i>
+                            <span>{{ documento.nome_original }}</span>
+                            <br>
+                            <small class="text-muted">{{ documento.tipo_documento_display }}</small>
+                        </div>
+                        <a href="{{ url_for('solicitacao_download_documento', id=solicitacao.id, doc_id=documento.id) }}" 
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-download"></i>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 20px;
+}
+
+.timeline-item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: -24px;
+    top: 20px;
+    height: calc(100% - 5px);
+    width: 2px;
+    background-color: #dee2e6;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -30px;
+    top: 0;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+}
+
+.timeline-content {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    border-left: 3px solid #007bff;
+}
+
+.checklist .form-check {
+    margin-bottom: 10px;
+}
+
+.badge-lg {
+    font-size: 0.9em;
+    padding: 8px 12px;
+}
+</style>
+{% endblock %}

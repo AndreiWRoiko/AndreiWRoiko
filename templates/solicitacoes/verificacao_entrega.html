@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Verificação de Entrega - Solicitação #{{ solicitacao.id }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-clipboard-check me-2"></i>Verificação de Entrega - Solicitação #{{ solicitacao.id }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Informações da Solicitação -->
+                    <div class="alert alert-info mb-4">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <strong>Solicitante:</strong> {{ solicitacao.solicitante }}<br>
+                                <strong>Equipamento:</strong> {{ solicitacao.tipo_equipamento.title() }}
+                            </div>
+                            <div class="col-md-4">
+                                <strong>Status:</strong> 
+                                <span class="badge" style="background-color: {{ solicitacao.status_color }};">
+                                    {{ solicitacao.status_display }}
+                                </span>
+                            </div>
+                            <div class="col-md-4">
+                                {% if solicitacao.data_entrega_prevista %}
+                                <strong>Entrega Prevista:</strong> {{ solicitacao.data_entrega_prevista.strftime('%d/%m/%Y') }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row">
+                            <!-- Dados do Equipamento -->
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.equipamento_id.label(class="form-label") }}
+                                    {{ form.equipamento_id(class="form-select") }}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.numero_serie.label(class="form-label") }}
+                                    {{ form.numero_serie(class="form-control") }}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.patrimonio.label(class="form-label") }}
+                                    {{ form.patrimonio(class="form-control") }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- Checklist de Verificação -->
+                        <h5><i class="fas fa-tasks me-2"></i>Checklist de Verificação</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card bg-secondary">
+                                    <div class="card-body">
+                                        <h6>Verificações Técnicas</h6>
+                                        <div class="form-check mb-2">
+                                            {{ form.equipamento_funcionando(class="form-check-input") }}
+                                            {{ form.equipamento_funcionando.label(class="form-check-label") }}
+                                        </div>
+                                        <div class="form-check mb-2">
+                                            {{ form.numero_serie_conferido(class="form-check-input") }}
+                                            {{ form.numero_serie_conferido.label(class="form-check-label") }}
+                                        </div>
+                                        <div class="form-check mb-2">
+                                            {{ form.sistema_operacional_configurado(class="form-check-input") }}
+                                            {{ form.sistema_operacional_configurado.label(class="form-check-label") }}
+                                        </div>
+                                        <div class="form-check">
+                                            {{ form.antivirus_instalado(class="form-check-input") }}
+                                            {{ form.antivirus_instalado.label(class="form-check-label") }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card bg-secondary">
+                                    <div class="card-body">
+                                        <h6>Itens de Entrega</h6>
+                                        <div class="form-check mb-2">
+                                            {{ form.acessorios_completos(class="form-check-input") }}
+                                            {{ form.acessorios_completos.label(class="form-check-label") }}
+                                        </div>
+                                        <div class="form-check mb-2">
+                                            {{ form.manual_entregue(class="form-check-input") }}
+                                            {{ form.manual_entregue.label(class="form-check-label") }}
+                                        </div>
+                                        <div class="form-check mb-2">
+                                            {{ form.termo_responsabilidade_assinado(class="form-check-input") }}
+                                            {{ form.termo_responsabilidade_assinado.label(class="form-check-label") }}
+                                        </div>
+                                        <div class="form-check">
+                                            {{ form.softwares_necessarios_instalados(class="form-check-input") }}
+                                            {{ form.softwares_necessarios_instalados.label(class="form-check-label") }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- Responsáveis -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.responsavel_verificacao.label(class="form-label") }}
+                                    {{ form.responsavel_verificacao(class="form-control" + (" is-invalid" if form.responsavel_verificacao.errors else "")) }}
+                                    {% if form.responsavel_verificacao.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.responsavel_verificacao.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.responsavel_recebimento.label(class="form-label") }}
+                                    {{ form.responsavel_recebimento(class="form-control" + (" is-invalid" if form.responsavel_recebimento.errors else "")) }}
+                                    {% if form.responsavel_recebimento.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.responsavel_recebimento.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Observações -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.observacoes_entrega.label(class="form-label") }}
+                                    {{ form.observacoes_entrega(class="form-control") }}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.problemas_identificados.label(class="form-label") }}
+                                    {{ form.problemas_identificados(class="form-control") }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('solicitacao_detail', id=solicitacao.id) }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Voltar
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-clipboard-check me-2"></i>Registrar Verificação
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Calendário de Solicitações{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-calendar me-2"></i>Calendário de Solicitações</h2>
+                <div>
+                    <a href="{{ url_for('solicitacoes_list') }}" class="btn btn-secondary me-2">
+                        <i class="fas fa-list me-1"></i>Ver Lista
+                    </a>
+                    <a href="{{ url_for('solicitacao_nova') }}" class="btn btn-success">
+                        <i class="fas fa-plus me-1"></i>Nova Solicitação
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Agenda de Entregas e Prazos</h5>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-primary active" onclick="calendar.changeView('dayGridMonth')">Mês</button>
+                            <button type="button" class="btn btn-outline-primary" onclick="calendar.changeView('listWeek')">Semana</button>
+                            <button type="button" class="btn btn-outline-primary" onclick="calendar.changeView('listMonth')">Lista</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="calendar"></div>
+                </div>
+            </div>
+            
+            <!-- Legenda -->
+            <div class="card mt-3">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h6>Legenda de Status:</h6>
+                            <span class="badge me-2" style="background-color: #17a2b8;">Pedido Enviado</span>
+                            <span class="badge me-2" style="background-color: #ffc107;">Em Análise</span>
+                            <span class="badge me-2" style="background-color: #28a745;">Autorizado</span>
+                            <span class="badge me-2" style="background-color: #6f42c1;">Em Preparação</span>
+                            <span class="badge me-2" style="background-color: #fd7e14;">Em Trânsito</span>
+                            <span class="badge me-2" style="background-color: #20c997;">Entregue</span>
+                            <span class="badge me-2" style="background-color: #dc3545;">Atrasado</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para detalhes do evento -->
+<div class="modal fade" id="eventoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalhes da Solicitação</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="evento-detalhes"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                <a id="ver-solicitacao-btn" href="#" class="btn btn-primary">Ver Solicitação</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- FullCalendar -->
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/locales/pt-br.global.js'></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var eventos = {{ eventos|tojson }};
+    
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        locale: 'pt-br',
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,listMonth'
+        },
+        events: eventos,
+        eventClick: function(info) {
+            var props = info.event.extendedProps;
+            var detalhes = `
+                <p><strong>Tipo:</strong> ${props.tipo === 'entrega_prevista' ? 'Entrega Prevista' : 'Data Limite'}</p>
+                <p><strong>Status:</strong> ${props.status}</p>
+                <p><strong>Equipamento:</strong> ${props.tipo_equipamento}</p>
+                <p><strong>Data:</strong> ${info.event.start.toLocaleDateString('pt-BR')}</p>
+            `;
+            
+            document.getElementById('evento-detalhes').innerHTML = detalhes;
+            document.getElementById('ver-solicitacao-btn').href = '/solicitacoes/' + props.solicitacao_id;
+            
+            var modal = new bootstrap.Modal(document.getElementById('eventoModal'));
+            modal.show();
+        },
+        height: 'auto',
+        eventDisplay: 'block',
+        eventTimeFormat: {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        }
+    });
+    
+    calendar.render();
+    window.calendar = calendar; // Para uso dos botões de visualização
+});
+</script>
+{% endblock %}

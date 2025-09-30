@@ -1,0 +1,452 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Sistema de Inventário{% endblock %}
+
+{% block head %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+    .dashboard-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    .metric-card {
+        background: linear-gradient(135deg, #4e88aa, #204dc9);
+        color: white;
+        border-radius: 15px;
+        position: relative;
+        overflow: hidden;
+    }
+    .metric-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 100%;
+        height: 100%;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+        transform: rotate(45deg);
+    }
+    .metric-card-primary { background: linear-gradient(135deg, #0043a6, #0043a6); }
+    .metric-card-success { background: linear-gradient(135deg, #0043a6, #0043a6); }
+    .metric-card-warning { background: linear-gradient(135deg, #0043a6, #0043a6); }
+    .metric-card-danger { background: linear-gradient(135deg, #c0392b, #e74c3c); }
+    
+    .chart-container {
+        background: rgb(255, 255, 255);
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    .metric-icon {
+        font-size: 2.5rem;
+        opacity: 0.8;
+    }
+    .metric-number {
+        font-size: 2.8rem;
+        font-weight: 700;
+        text-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
+    }
+    .metric-label {
+        font-size: 1rem;
+        font-weight: 500;
+        opacity: 0.9;
+    }
+    .page-header {
+        background: linear-gradient(135deg, #07097c, #2c54c2);
+        color: rgb(255, 255, 255);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    .top-clients-table {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    .progress-bar {
+        background: linear-gradient(90deg, #0e0653, #eeff00);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header text-center">
+    <h1 class="mb-3">
+        <i class="fas fa-chart-line me-3"></i>
+        Dashboard Corporativo
+    </h1>
+    <p class="mb-0 fs-5">Sistema de Gestão de Inventário de Equipamentos</p>
+</div>
+
+<!-- KPI Cards -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="metric-card metric-card-primary text-center p-4">
+            <div class="metric-icon mb-3">
+                <i class="fas fa-desktop"></i>
+            </div>
+            <div class="metric-number">{{ user_stats.total if user_stats else 0 }}</div>
+            <div class="metric-label">Total de Equipamentos</div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="metric-card metric-card-success text-center p-4">
+            <div class="metric-icon mb-3">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="metric-number">{{ user_stats.em_uso if user_stats else 0 }}</div>
+            <div class="metric-label">Em Uso</div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="metric-card metric-card-warning text-center p-4">
+            <div class="metric-icon mb-3">
+                <i class="fas fa-file-contract"></i>
+            </div>
+            <div class="metric-number">{{ user_stats.sem_termo if user_stats else 0 }}</div>
+            <div class="metric-label">Sem Termo Assinado</div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="metric-card metric-card-primary text-center p-4">
+            <div class="metric-icon mb-3">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="metric-number">R$ {{ "{:,.0f}".format(user_stats.valor_total) if user_stats and user_stats.valor_total else "0" }}</div>
+            <div class="metric-label">Valor Total</div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+    <!-- Fornecedores Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="dashboard-card">
+            <div class="card-header bg-transparent border-0 p-4">
+                <h5 class="card-title text-success mb-0">
+                    <i class="fas fa-industry me-2"></i>
+                    Equipamentos por Fornecedor
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <canvas id="fornecedorChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- UF Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="dashboard-card">
+            <div class="card-header bg-transparent border-0 p-4">
+                <h5 class="card-title text-success mb-0">
+                    <i class="fas fa-map-marker-alt me-2"></i>
+                    Distribuição por Estado
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <canvas id="ufChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Status Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="dashboard-card">
+            <div class="card-header bg-transparent border-0 p-4">
+                <h5 class="card-title text-success mb-0">
+                    <i class="fas fa-tasks me-2"></i>
+                    Equipamentos por Status
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <canvas id="statusChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Segmentos Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="dashboard-card">
+            <div class="card-header bg-transparent border-0 p-4">
+                <h5 class="card-title text-success mb-0">
+                    <i class="fas fa-tags me-2"></i>
+                    Equipamentos por Segmento
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <canvas id="segmentosChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-12">
+        <div class="dashboard-card">
+            <div class="card-header bg-transparent border-0 p-4">
+                <h5 class="card-title text-success mb-0">
+                    <i class="fas fa-bolt me-2"></i>
+                    Ações Rápidas
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row">
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                        <a href="{{ url_for('inventory.equipment_create') }}" class="btn btn-success w-100 py-3">
+                            <i class="fas fa-plus mb-2 d-block"></i>
+                            <small>Novo Equipamento</small>
+                        </a>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                        <a href="{{ url_for('inventory.import_equipment') }}" class="btn btn-outline-success w-100 py-3">
+                            <i class="fas fa-file-import mb-2 d-block"></i>
+                            <small>Importar Dados</small>
+                        </a>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                        <a href="{{ url_for('inventory.equipment_list') }}" class="btn btn-outline-success w-100 py-3">
+                            <i class="fas fa-list mb-2 d-block"></i>
+                            <small>Ver Todos</small>
+                        </a>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                        <a href="#" class="btn btn-outline-secondary w-100 py-3" disabled>
+                            <i class="fas fa-history mb-2 d-block"></i>
+                            <small>Histórico (Em Breve)</small>
+                        </a>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                        <a href="#" class="btn btn-outline-secondary w-100 py-3" disabled>
+                            <i class="fas fa-file-excel mb-2 d-block"></i>
+                            <small>Exportar Excel (Em Breve)</small>
+                        </a>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                        <a href="#" class="btn btn-outline-secondary w-100 py-3" disabled>
+                            <i class="fas fa-file-pdf mb-2 d-block"></i>
+                            <small>Exportar PDF (Em Breve)</small>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Wait for Chart.js to load
+if (typeof Chart === 'undefined') {
+    console.error('Chart.js não carregou corretamente');
+} else {
+    console.log('Chart.js carregado com sucesso');
+}
+
+// Chart.js configurations with green theme
+const chartColors = {
+    primary: '#0E0E76',
+    secondary: '#0043A6',
+    success: '#006DC3',
+    info: '#0095CC',
+    warning: '#F27F05',
+    danger: '#FC0A0A',
+    light: '#FCF00A',
+    dark: '#0F0F0F'
+};
+
+// Default chart options
+const defaultOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            position: 'bottom',
+            labels: {
+                padding: 20,
+                usePointStyle: true
+            }
+        }
+    }
+};
+
+// Fornecedores Chart
+const fornecedorData = {{ equipment_data.fornecedor_data | tojson if equipment_data and equipment_data.fornecedor_data else '[]' }};
+if (fornecedorData && fornecedorData.length > 0) {
+    const ctx1 = document.getElementById('fornecedorChart').getContext('2d');
+    new Chart(ctx1, {
+        type: 'bar',
+        data: {
+            labels: fornecedorData.map(item => item[0] || 'Não informado'),
+            datasets: [{
+                label: 'Equipamentos',
+                data: fornecedorData.map(item => item[1]),
+                backgroundColor: chartColors.primary,
+                borderColor: chartColors.success,
+                borderWidth: 2,
+                borderRadius: 5
+            }]
+        },
+        options: {
+            ...defaultOptions,
+            indexAxis: 'y',
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0,0,0,0.05)'
+                    }
+                },
+                y: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+}
+
+// UF Chart
+const ufData = {{ equipment_data.uf_data | tojson if equipment_data and equipment_data.uf_data else '[]' }};
+if (ufData && ufData.length > 0) {
+    const ctx2 = document.getElementById('ufChart').getContext('2d');
+    new Chart(ctx2, {
+        type: 'bar',
+        data: {
+            labels: ufData.map(item => item[0]),
+            datasets: [{
+                label: 'Equipamentos',
+                data: ufData.map(item => item[1]),
+                backgroundColor: chartColors.secondary,
+                borderColor: chartColors.primary,
+                borderWidth: 2,
+                borderRadius: 5
+            }]
+        },
+        options: {
+            ...defaultOptions,
+            indexAxis: 'y',
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0,0,0,0.05)'
+                    }
+                },
+                y: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Status Chart
+const statusData = {{ equipment_data.status_data | tojson if equipment_data and equipment_data.status_data else '[]' }};
+if (statusData && statusData.length > 0) {
+    const ctx3 = document.getElementById('statusChart').getContext('2d');
+    new Chart(ctx3, {
+        type: 'doughnut',
+        data: {
+            labels: statusData.map(item => item[0]),
+            datasets: [{
+                data: statusData.map(item => item[1]),
+                backgroundColor: [
+                    chartColors.primary,
+                    chartColors.secondary,
+                    chartColors.warning,
+                    chartColors.danger,
+                    chartColors.info
+                ],
+                borderWidth: 3,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            ...defaultOptions,
+            cutout: '60%',
+            plugins: {
+                legend: {
+                    position: 'right'
+                }
+            }
+        }
+    });
+}
+
+// Segmentos Chart
+const segmentosData = {{ equipment_data.segmentos_data | tojson if equipment_data and equipment_data.segmentos_data else '[]' }};
+if (segmentosData && segmentosData.length > 0) {
+    const ctx4 = document.getElementById('segmentosChart').getContext('2d');
+    new Chart(ctx4, {
+        type: 'pie',
+        data: {
+            labels: segmentosData.map(item => item[0] || 'Não informado'),
+            datasets: [{
+                data: segmentosData.map(item => item[1]),
+                backgroundColor: [
+                    chartColors.primary,
+                    chartColors.secondary,
+                    chartColors.success,
+                    chartColors.info,
+                    chartColors.warning,
+                    chartColors.danger,
+                    chartColors.light,
+                    chartColors.dark
+                ],
+                borderWidth: 2,
+                borderColor: '#2d2d2d'
+            }]
+        },
+        options: {
+            ...defaultOptions,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        padding: 15,
+                        usePointStyle: true,
+                        font: {
+                            size: 11
+                        },
+                        color: '#ffffff'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Add hover effects to cards
+document.querySelectorAll('.dashboard-card').forEach(card => {
+    card.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-5px)';
+    });
+    
+    card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+    });
+});
+</script>
+{% endblock %}
