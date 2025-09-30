@@ -243,3 +243,32 @@ def edit_user(user_id):
             flash(f"Erro ao atualizar usuário: {str(e)}", "error")
     
     return render_template("admin/create_user.html", form=form, user=user, title="Editar Usuário")
+
+
+@admin_bp.route("/users/<int:user_id>/delete", methods=["POST"])
+@login_required
+def delete_user(user_id):
+    """Delete user (admin only)"""
+    from inventory_app.extensions import db
+    
+    if not current_user.has_permission("admin"):
+        flash("Apenas administradores podem apagar usuários.", "error")
+        return redirect(url_for("admin.users"))
+    
+    user = User.query.get_or_404(user_id)
+    
+    # Prevent self-deletion
+    if user.id == current_user.id:
+        flash("Você não pode apagar sua própria conta.", "error")
+        return redirect(url_for("admin.users"))
+    
+    try:
+        username = user.username
+        db.session.delete(user)
+        db.session.commit()
+        flash(f"Usuário {username} apagado com sucesso.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erro ao apagar usuário: {str(e)}", "error")
+    
+    return redirect(url_for("admin.users"))
