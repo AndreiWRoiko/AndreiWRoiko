@@ -1,452 +1,882 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - Sistema de Inventário{% endblock %}
+{% block title %}Dashboard Executivo - Sistema de Inventário{% endblock %}
 
 {% block head %}
-<!-- Chart.js -->
+<!-- Chart.js 4.4.1 -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
-    .dashboard-card {
-        border: none;
-        border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    /* Modern Dashboard Styles */
+    :root {
+        --primary-color: #0043A6;
+        --success-color: #006DC3;
+        --warning-color: #F27F05;
+        --danger-color: #FC0A0A;
+        --light-bg: #F8F9FA;
+        --card-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        --card-hover-shadow: 0 8px 30px rgba(0,0,0,0.12);
     }
-    .dashboard-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-    }
-    .metric-card {
-        background: linear-gradient(135deg, #4e88aa, #204dc9);
-        color: white;
-        border-radius: 15px;
-        position: relative;
-        overflow: hidden;
-    }
-    .metric-card::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -50%;
-        width: 100%;
-        height: 100%;
-        background: rgba(255,255,255,0.1);
-        border-radius: 50%;
-        transform: rotate(45deg);
-    }
-    .metric-card-primary { background: linear-gradient(135deg, #0043a6, #0043a6); }
-    .metric-card-success { background: linear-gradient(135deg, #0043a6, #0043a6); }
-    .metric-card-warning { background: linear-gradient(135deg, #0043a6, #0043a6); }
-    .metric-card-danger { background: linear-gradient(135deg, #c0392b, #e74c3c); }
     
-    .chart-container {
-        background: rgb(255, 255, 255);
-        border-radius: 15px;
-        padding: 20px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    .dashboard-container {
+        background: var(--light-bg);
+        min-height: 100vh;
+        padding: 2rem 0;
     }
-    .metric-icon {
-        font-size: 2.5rem;
-        opacity: 0.8;
-    }
-    .metric-number {
-        font-size: 2.8rem;
-        font-weight: 700;
-        text-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
-    }
-    .metric-label {
-        font-size: 1rem;
-        font-weight: 500;
-        opacity: 0.9;
-    }
-    .page-header {
-        background: linear-gradient(135deg, #07097c, #2c54c2);
-        color: rgb(255, 255, 255);
-        border-radius: 15px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-    }
-    .top-clients-table {
+    
+    /* Executive KPI Cards */
+    .kpi-card {
         background: white;
-        border-radius: 15px;
-        overflow: hidden;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s ease;
+        border: none;
+        height: 100%;
     }
-    .progress-bar {
-        background: linear-gradient(90deg, #0e0653, #eeff00);
+    
+    .kpi-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--card-hover-shadow);
+    }
+    
+    .kpi-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+    }
+    
+    .kpi-value {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        line-height: 1;
+    }
+    
+    .kpi-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+    
+    .kpi-trend {
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+    }
+    
+    /* Chart Containers */
+    .chart-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 1.5rem;
+        border: none;
+    }
+    
+    .chart-header {
+        border-bottom: 2px solid #f0f0f0;
+        padding-bottom: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .chart-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0;
+    }
+    
+    .chart-subtitle {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin: 0.25rem 0 0 0;
+    }
+    
+    /* Section Headers */
+    .section-header {
+        margin-bottom: 1.5rem;
+        margin-top: 2rem;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+    
+    .section-subtitle {
+        color: #6c757d;
+        font-size: 0.95rem;
+    }
+    
+    /* Compliance Badge */
+    .compliance-badge {
+        display: inline-block;
+        padding: 0.35rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .badge-success { background: #d4edda; color: #155724; }
+    .badge-warning { background: #fff3cd; color: #856404; }
+    .badge-danger { background: #f8d7da; color: #721c24; }
+    
+    /* Activity Feed */
+    .activity-item {
+        padding: 1rem;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background 0.2s;
+    }
+    
+    .activity-item:hover {
+        background: #f8f9fa;
+    }
+    
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    
+    /* Top Performers Table */
+    .performers-table {
+        font-size: 0.9rem;
+    }
+    
+    .performers-table td {
+        vertical-align: middle;
+        padding: 0.75rem;
+    }
+    
+    .rank-badge {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+    
+    .rank-1 { background: #ffd700; color: #000; }
+    .rank-2 { background: #c0c0c0; color: #000; }
+    .rank-3 { background: #cd7f32; color: #fff; }
+    .rank-other { background: #e9ecef; color: #495057; }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .kpi-value { font-size: 1.8rem; }
+        .chart-card { padding: 1rem; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Page Header -->
-<div class="page-header text-center">
-    <h1 class="mb-3">
-        <i class="fas fa-chart-line me-3"></i>
-        Dashboard Corporativo
-    </h1>
-    <p class="mb-0 fs-5">Sistema de Gestão de Inventário de Equipamentos</p>
-</div>
+<div class="dashboard-container">
+    <div class="container-fluid">
+        
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="display-5 fw-bold text-primary mb-2">
+                    <i class="fas fa-chart-line me-3"></i>Dashboard Executivo
+                </h1>
+                <p class="text-muted">Visão completa do inventário de equipamentos em tempo real</p>
+            </div>
+        </div>
 
-<!-- KPI Cards -->
-<div class="row mb-4">
-    <div class="col-lg-3 col-md-6 mb-4">
-        <div class="metric-card metric-card-primary text-center p-4">
-            <div class="metric-icon mb-3">
-                <i class="fas fa-desktop"></i>
-            </div>
-            <div class="metric-number">{{ user_stats.total if user_stats else 0 }}</div>
-            <div class="metric-label">Total de Equipamentos</div>
-        </div>
-    </div>
-    
-    <div class="col-lg-3 col-md-6 mb-4">
-        <div class="metric-card metric-card-success text-center p-4">
-            <div class="metric-icon mb-3">
-                <i class="fas fa-check-circle"></i>
-            </div>
-            <div class="metric-number">{{ user_stats.em_uso if user_stats else 0 }}</div>
-            <div class="metric-label">Em Uso</div>
-        </div>
-    </div>
-    
-    <div class="col-lg-3 col-md-6 mb-4">
-        <div class="metric-card metric-card-warning text-center p-4">
-            <div class="metric-icon mb-3">
-                <i class="fas fa-file-contract"></i>
-            </div>
-            <div class="metric-number">{{ user_stats.sem_termo if user_stats else 0 }}</div>
-            <div class="metric-label">Sem Termo Assinado</div>
-        </div>
-    </div>
-    
-    <div class="col-lg-3 col-md-6 mb-4">
-        <div class="metric-card metric-card-primary text-center p-4">
-            <div class="metric-icon mb-3">
-                <i class="fas fa-dollar-sign"></i>
-            </div>
-            <div class="metric-number">R$ {{ "{:,.0f}".format(user_stats.valor_total) if user_stats and user_stats.valor_total else "0" }}</div>
-            <div class="metric-label">Valor Total</div>
-        </div>
-    </div>
-</div>
-
-<!-- Charts Row -->
-<div class="row mb-4">
-    <!-- Fornecedores Chart -->
-    <div class="col-lg-6 mb-4">
-        <div class="dashboard-card">
-            <div class="card-header bg-transparent border-0 p-4">
-                <h5 class="card-title text-success mb-0">
-                    <i class="fas fa-industry me-2"></i>
-                    Equipamentos por Fornecedor
-                </h5>
-            </div>
-            <div class="card-body p-4">
-                <canvas id="fornecedorChart" height="300"></canvas>
-            </div>
-        </div>
-    </div>
-    
-    <!-- UF Chart -->
-    <div class="col-lg-6 mb-4">
-        <div class="dashboard-card">
-            <div class="card-header bg-transparent border-0 p-4">
-                <h5 class="card-title text-success mb-0">
-                    <i class="fas fa-map-marker-alt me-2"></i>
-                    Distribuição por Estado
-                </h5>
-            </div>
-            <div class="card-body p-4">
-                <canvas id="ufChart" height="300"></canvas>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row mb-4">
-    <!-- Status Chart -->
-    <div class="col-lg-6 mb-4">
-        <div class="dashboard-card">
-            <div class="card-header bg-transparent border-0 p-4">
-                <h5 class="card-title text-success mb-0">
-                    <i class="fas fa-tasks me-2"></i>
-                    Equipamentos por Status
-                </h5>
-            </div>
-            <div class="card-body p-4">
-                <canvas id="statusChart" height="300"></canvas>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Segmentos Chart -->
-    <div class="col-lg-6 mb-4">
-        <div class="dashboard-card">
-            <div class="card-header bg-transparent border-0 p-4">
-                <h5 class="card-title text-success mb-0">
-                    <i class="fas fa-tags me-2"></i>
-                    Equipamentos por Segmento
-                </h5>
-            </div>
-            <div class="card-body p-4">
-                <canvas id="segmentosChart" height="300"></canvas>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-<!-- Quick Actions -->
-<div class="row">
-    <div class="col-12">
-        <div class="dashboard-card">
-            <div class="card-header bg-transparent border-0 p-4">
-                <h5 class="card-title text-success mb-0">
-                    <i class="fas fa-bolt me-2"></i>
-                    Ações Rápidas
-                </h5>
-            </div>
-            <div class="card-body p-4">
-                <div class="row">
-                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-                        <a href="{{ url_for('inventory.equipment_create') }}" class="btn btn-success w-100 py-3">
-                            <i class="fas fa-plus mb-2 d-block"></i>
-                            <small>Novo Equipamento</small>
-                        </a>
+        <!-- Tier 1: Executive KPIs -->
+        <div class="row g-3 mb-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: linear-gradient(135deg, #0043A6, #006DC3); color: white;">
+                        <i class="fas fa-laptop"></i>
                     </div>
-                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-                        <a href="{{ url_for('inventory.import_equipment') }}" class="btn btn-outline-success w-100 py-3">
-                            <i class="fas fa-file-import mb-2 d-block"></i>
-                            <small>Importar Dados</small>
-                        </a>
+                    <div class="kpi-value text-primary">{{ equipment_data.total if equipment_data else 0 }}</div>
+                    <div class="kpi-label">Total de Equipamentos</div>
+                    <div class="kpi-trend text-success">
+                        <i class="fas fa-arrow-up"></i> Ativos no sistema
                     </div>
-                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-                        <a href="{{ url_for('inventory.equipment_list') }}" class="btn btn-outline-success w-100 py-3">
-                            <i class="fas fa-list mb-2 d-block"></i>
-                            <small>Ver Todos</small>
-                        </a>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: linear-gradient(135deg, #006DC3, #0095CC); color: white;">
+                        <i class="fas fa-check-circle"></i>
                     </div>
-                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-                        <a href="#" class="btn btn-outline-secondary w-100 py-3" disabled>
-                            <i class="fas fa-history mb-2 d-block"></i>
-                            <small>Histórico (Em Breve)</small>
-                        </a>
+                    <div class="kpi-value text-success">
+                        {% if equipment_data and equipment_data.total > 0 %}
+                            {{ ((equipment_data.em_uso / equipment_data.total) * 100) | round(1) }}%
+                        {% else %}
+                            0%
+                        {% endif %}
                     </div>
-                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-                        <a href="#" class="btn btn-outline-secondary w-100 py-3" disabled>
-                            <i class="fas fa-file-excel mb-2 d-block"></i>
-                            <small>Exportar Excel (Em Breve)</small>
-                        </a>
+                    <div class="kpi-label">Taxa de Utilização</div>
+                    <div class="kpi-trend">
+                        <small>{{ equipment_data.em_uso if equipment_data else 0 }} em uso</small>
                     </div>
-                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-                        <a href="#" class="btn btn-outline-secondary w-100 py-3" disabled>
-                            <i class="fas fa-file-pdf mb-2 d-block"></i>
-                            <small>Exportar PDF (Em Breve)</small>
-                        </a>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: linear-gradient(135deg, #F27F05, #FF9A3C); color: white;">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="kpi-value text-warning">
+                        R$ {{ "{:,.0f}".format(equipment_data.valor_total) if equipment_data and equipment_data.valor_total else "0" }}
+                    </div>
+                    <div class="kpi-label">Valor Total do Ativo</div>
+                    <div class="kpi-trend text-muted">
+                        <small>Investimento total</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: linear-gradient(135deg, #0095CC, #00B8D4); color: white;">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="kpi-value text-info">
+                        {% if equipment_data and equipment_data.antivirus_stats %}
+                            {{ equipment_data.antivirus_stats.percentual_com | round(1) }}%
+                        {% else %}
+                            0%
+                        {% endif %}
+                    </div>
+                    <div class="kpi-label">Taxa de Proteção</div>
+                    <div class="kpi-trend">
+                        <small>Com antivírus instalado</small>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Compliance Section -->
+        <div class="section-header">
+            <h2 class="section-title"><i class="fas fa-clipboard-check me-2"></i>Conformidade e Segurança</h2>
+            <p class="section-subtitle">Indicadores de compliance e proteção de ativos</p>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <!-- Antivirus Compliance -->
+            <div class="col-lg-6">
+                <div class="chart-card">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h3 class="chart-title">Proteção Antivírus</h3>
+                            <p class="chart-subtitle">Status de instalação de antivírus</p>
+                        </div>
+                        {% if equipment_data and equipment_data.antivirus_stats %}
+                        <span class="compliance-badge {% if equipment_data.antivirus_stats.percentual_com >= 90 %}badge-success{% elif equipment_data.antivirus_stats.percentual_com >= 70 %}badge-warning{% else %}badge-danger{% endif %}">
+                            {{ equipment_data.antivirus_stats.percentual_com | round(1) }}% Cobertos
+                        </span>
+                        {% endif %}
+                    </div>
+                    <canvas id="antivirusChart" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- Termo Compliance -->
+            <div class="col-lg-6">
+                <div class="chart-card">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h3 class="chart-title">Termos Assinados</h3>
+                            <p class="chart-subtitle">Status de assinatura de termos de responsabilidade</p>
+                        </div>
+                        {% if equipment_data and equipment_data.termo_stats %}
+                        <span class="compliance-badge {% if equipment_data.termo_stats.percentual_com >= 90 %}badge-success{% elif equipment_data.termo_stats.percentual_com >= 70 %}badge-warning{% else %}badge-danger{% endif %}">
+                            {{ equipment_data.termo_stats.percentual_com | round(1) }}% Assinados
+                        </span>
+                        {% endif %}
+                    </div>
+                    <canvas id="termoChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tier 2: Analytics Panels -->
+        <div class="section-header">
+            <h2 class="section-title"><i class="fas fa-chart-bar me-2"></i>Análise Operacional</h2>
+            <p class="section-subtitle">Distribuição e análise detalhada de equipamentos</p>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <!-- Status by Type -->
+            <div class="col-lg-6">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Status por Tipo de Equipamento</h3>
+                        <p class="chart-subtitle">Distribuição de status entre notebooks e celulares</p>
+                    </div>
+                    <canvas id="statusTipoChart" height="250"></canvas>
+                </div>
+            </div>
+
+            <!-- UF Distribution -->
+            <div class="col-lg-6">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Distribuição Geográfica (UF)</h3>
+                        <p class="chart-subtitle">Equipamentos por estado</p>
+                    </div>
+                    <canvas id="ufChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <!-- CNPJ Distribution -->
+            <div class="col-lg-8">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Top 10 CNPJ por Valor</h3>
+                        <p class="chart-subtitle">Principais empresas por valor total de equipamentos</p>
+                    </div>
+                    <canvas id="cnpjChart" height="250"></canvas>
+                </div>
+            </div>
+
+            <!-- Value Distribution -->
+            <div class="col-lg-4">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Distribuição de Valor</h3>
+                        <p class="chart-subtitle">Equipamentos por faixa de preço</p>
+                    </div>
+                    <canvas id="valueDistChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <!-- Top Brands -->
+            <div class="col-lg-6">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Top 10 Marcas</h3>
+                        <p class="chart-subtitle">Marcas mais utilizadas no inventário</p>
+                    </div>
+                    <canvas id="marcaChart" height="250"></canvas>
+                </div>
+            </div>
+
+            <!-- Equipment Status -->
+            <div class="col-lg-6">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Status Geral dos Equipamentos</h3>
+                        <p class="chart-subtitle">Proporção de status no inventário</p>
+                    </div>
+                    <canvas id="statusChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tier 3: Drill-down Tables & Activity -->
+        <div class="section-header">
+            <h2 class="section-title"><i class="fas fa-users me-2"></i>Top Responsáveis</h2>
+            <p class="section-subtitle">Colaboradores com mais equipamentos sob responsabilidade</p>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="chart-card">
+                    <div class="table-responsive">
+                        <table class="table performers-table table-hover">
+                            <thead>
+                                <tr>
+                                    <th width="60">Posição</th>
+                                    <th>Responsável</th>
+                                    <th class="text-end">Qtd. Equipamentos</th>
+                                    <th class="text-end">Valor Total</th>
+                                    <th width="200">Distribuição</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if equipment_data and equipment_data.top_responsaveis %}
+                                    {% for item in equipment_data.top_responsaveis %}
+                                    <tr>
+                                        <td>
+                                            <span class="rank-badge rank-{% if loop.index <= 3 %}{{ loop.index }}{% else %}other{% endif %}">
+                                                #{{ loop.index }}
+                                            </span>
+                                        </td>
+                                        <td><strong>{{ item[0] }}</strong></td>
+                                        <td class="text-end">{{ item[1] }}</td>
+                                        <td class="text-end">R$ {{ "{:,.2f}".format(item[2] if item[2] else 0) }}</td>
+                                        <td>
+                                            <div class="progress" style="height: 8px;">
+                                                {% set max_count = equipment_data.top_responsaveis[0][1] if equipment_data.top_responsaveis else 1 %}
+                                                <div class="progress-bar bg-primary" role="progressbar" 
+                                                     style="width: {{ (item[1] / max_count * 100) | round(0) }}%" 
+                                                     aria-valuenow="{{ item[1] }}" aria-valuemin="0" aria-valuemax="{{ max_count }}">
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-4">
+                                            <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                                            Nenhum dado disponível
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="section-header">
+            <h2 class="section-title"><i class="fas fa-clock me-2"></i>Atividade Recente</h2>
+            <p class="section-subtitle">Equipamentos adicionados recentemente ao sistema</p>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="chart-card">
+                    {% if equipment_data and equipment_data.recent_additions %}
+                        {% for eq in equipment_data.recent_additions %}
+                        <div class="activity-item">
+                            <div class="d-flex align-items-center">
+                                <div class="activity-icon {% if eq.tipo_equipamento == 'notebook' %}bg-primary{% else %}bg-success{% endif %} text-white me-3">
+                                    <i class="fas fa-{% if eq.tipo_equipamento == 'notebook' %}laptop{% else %}mobile-alt{% endif %}"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <strong>{{ eq.modelo }}</strong>
+                                            <span class="text-muted ms-2">#{{ eq.patrimonio }}</span>
+                                            <div class="small text-muted mt-1">
+                                                <i class="fas fa-user me-1"></i>{{ eq.responsavel }}
+                                                <span class="mx-2">|</span>
+                                                <i class="fas fa-map-marker-alt me-1"></i>{{ eq.uf }}
+                                                <span class="mx-2">|</span>
+                                                <i class="fas fa-building me-1"></i>{{ eq.centro_custo.codigo if eq.centro_custo else 'N/A' }}
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge bg-secondary">{{ eq.status }}</span>
+                                            <div class="small text-muted mt-1">
+                                                {% if eq.valor %}R$ {{ "{:,.2f}".format(eq.valor) }}{% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                            <p>Nenhuma atividade recente</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="chart-card">
+                    <h3 class="chart-title mb-3"><i class="fas fa-bolt me-2"></i>Ações Rápidas</h3>
+                    <div class="row g-3">
+                        <div class="col-md-3 col-sm-6">
+                            <a href="{{ url_for('inventory.equipment_create') }}" class="btn btn-primary w-100 py-3">
+                                <i class="fas fa-plus-circle fa-2x mb-2 d-block"></i>
+                                <span>Novo Equipamento</span>
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <a href="{{ url_for('inventory.equipment_list') }}" class="btn btn-outline-primary w-100 py-3">
+                                <i class="fas fa-list fa-2x mb-2 d-block"></i>
+                                <span>Ver Inventário</span>
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <a href="{{ url_for('inventory.import_equipment') }}" class="btn btn-outline-success w-100 py-3">
+                                <i class="fas fa-file-import fa-2x mb-2 d-block"></i>
+                                <span>Importar Excel</span>
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <a href="{{ url_for('inventory.export_excel') }}" class="btn btn-outline-info w-100 py-3">
+                                <i class="fas fa-file-excel fa-2x mb-2 d-block"></i>
+                                <span>Exportar Dados</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-// Wait for Chart.js to load
-if (typeof Chart === 'undefined') {
-    console.error('Chart.js não carregou corretamente');
-} else {
-    console.log('Chart.js carregado com sucesso');
-}
+// Brazilian Portuguese number formatting
+const formatCurrency = (value) => {
+    return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(value);
+};
 
-// Chart.js configurations with green theme
-const chartColors = {
-    primary: '#0E0E76',
-    secondary: '#0043A6',
-    success: '#006DC3',
-    info: '#0095CC',
+// Chart.js global configuration
+Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+Chart.defaults.color = '#6c757d';
+Chart.defaults.responsive = true;
+Chart.defaults.maintainAspectRatio = false;
+
+// Color palette
+const colors = {
+    primary: '#0043A6',
+    secondary: '#006DC3',
+    success: '#0095CC',
+    info: '#00B8D4',
     warning: '#F27F05',
     danger: '#FC0A0A',
     light: '#FCF00A',
-    dark: '#0F0F0F'
+    dark: '#2c3e50'
 };
 
-// Default chart options
-const defaultOptions = {
+const chartColors = [
+    colors.primary, colors.secondary, colors.success, colors.info,
+    colors.warning, colors.danger, '#8B5CF6', '#EC4899', '#10B981', '#F59E0B'
+];
+
+// Common chart options
+const commonOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
         legend: {
             position: 'bottom',
             labels: {
-                padding: 20,
-                usePointStyle: true
+                padding: 15,
+                usePointStyle: true,
+                font: { size: 11 }
             }
+        },
+        tooltip: {
+            backgroundColor: 'rgba(0,0,0,0.8)',
+            padding: 12,
+            titleFont: { size: 13, weight: 'bold' },
+            bodyFont: { size: 12 },
+            cornerRadius: 8
         }
+    },
+    interaction: {
+        mode: 'index',
+        intersect: false
     }
 };
 
-// Fornecedores Chart
-const fornecedorData = {{ equipment_data.fornecedor_data | tojson if equipment_data and equipment_data.fornecedor_data else '[]' }};
-if (fornecedorData && fornecedorData.length > 0) {
-    const ctx1 = document.getElementById('fornecedorChart').getContext('2d');
-    new Chart(ctx1, {
-        type: 'bar',
-        data: {
-            labels: fornecedorData.map(item => item[0] || 'Não informado'),
-            datasets: [{
-                label: 'Equipamentos',
-                data: fornecedorData.map(item => item[1]),
-                backgroundColor: chartColors.primary,
-                borderColor: chartColors.success,
-                borderWidth: 2,
-                borderRadius: 5
-            }]
-        },
-        options: {
-            ...defaultOptions,
-            indexAxis: 'y',
-            scales: {
-                x: {
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(0,0,0,0.05)'
-                    }
-                },
-                y: {
-                    grid: {
-                        display: false
-                    }
-                }
-            }
+// 1. Antivirus Compliance Chart
+{% if equipment_data and equipment_data.antivirus_stats %}
+const antivirusCtx = document.getElementById('antivirusChart').getContext('2d');
+new Chart(antivirusCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Com Antivírus', 'Sem Antivírus'],
+        datasets: [{
+            data: [
+                {{ equipment_data.antivirus_stats.com_antivirus }},
+                {{ equipment_data.antivirus_stats.sem_antivirus }}
+            ],
+            backgroundColor: [colors.success, colors.danger],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        ...commonOptions,
+        cutout: '70%',
+        plugins: {
+            ...commonOptions.plugins,
+            legend: { position: 'right' }
         }
-    });
-}
-
-// UF Chart
-const ufData = {{ equipment_data.uf_data | tojson if equipment_data and equipment_data.uf_data else '[]' }};
-if (ufData && ufData.length > 0) {
-    const ctx2 = document.getElementById('ufChart').getContext('2d');
-    new Chart(ctx2, {
-        type: 'bar',
-        data: {
-            labels: ufData.map(item => item[0]),
-            datasets: [{
-                label: 'Equipamentos',
-                data: ufData.map(item => item[1]),
-                backgroundColor: chartColors.secondary,
-                borderColor: chartColors.primary,
-                borderWidth: 2,
-                borderRadius: 5
-            }]
-        },
-        options: {
-            ...defaultOptions,
-            indexAxis: 'y',
-            scales: {
-                x: {
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(0,0,0,0.05)'
-                    }
-                },
-                y: {
-                    grid: {
-                        display: false
-                    }
-                }
-            }
-        }
-    });
-}
-
-// Status Chart
-const statusData = {{ equipment_data.status_data | tojson if equipment_data and equipment_data.status_data else '[]' }};
-if (statusData && statusData.length > 0) {
-    const ctx3 = document.getElementById('statusChart').getContext('2d');
-    new Chart(ctx3, {
-        type: 'doughnut',
-        data: {
-            labels: statusData.map(item => item[0]),
-            datasets: [{
-                data: statusData.map(item => item[1]),
-                backgroundColor: [
-                    chartColors.primary,
-                    chartColors.secondary,
-                    chartColors.warning,
-                    chartColors.danger,
-                    chartColors.info
-                ],
-                borderWidth: 3,
-                borderColor: '#fff'
-            }]
-        },
-        options: {
-            ...defaultOptions,
-            cutout: '60%',
-            plugins: {
-                legend: {
-                    position: 'right'
-                }
-            }
-        }
-    });
-}
-
-// Segmentos Chart
-const segmentosData = {{ equipment_data.segmentos_data | tojson if equipment_data and equipment_data.segmentos_data else '[]' }};
-if (segmentosData && segmentosData.length > 0) {
-    const ctx4 = document.getElementById('segmentosChart').getContext('2d');
-    new Chart(ctx4, {
-        type: 'pie',
-        data: {
-            labels: segmentosData.map(item => item[0] || 'Não informado'),
-            datasets: [{
-                data: segmentosData.map(item => item[1]),
-                backgroundColor: [
-                    chartColors.primary,
-                    chartColors.secondary,
-                    chartColors.success,
-                    chartColors.info,
-                    chartColors.warning,
-                    chartColors.danger,
-                    chartColors.light,
-                    chartColors.dark
-                ],
-                borderWidth: 2,
-                borderColor: '#2d2d2d'
-            }]
-        },
-        options: {
-            ...defaultOptions,
-            plugins: {
-                legend: {
-                    position: 'right',
-                    labels: {
-                        padding: 15,
-                        usePointStyle: true,
-                        font: {
-                            size: 11
-                        },
-                        color: '#ffffff'
-                    }
-                }
-            }
-        }
-    });
-}
-
-// Add hover effects to cards
-document.querySelectorAll('.dashboard-card').forEach(card => {
-    card.addEventListener('mouseenter', function() {
-        this.style.transform = 'translateY(-5px)';
-    });
-    
-    card.addEventListener('mouseleave', function() {
-        this.style.transform = 'translateY(0)';
-    });
+    }
 });
+{% endif %}
+
+// 2. Termo Compliance Chart
+{% if equipment_data and equipment_data.termo_stats %}
+const termoCtx = document.getElementById('termoChart').getContext('2d');
+new Chart(termoCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Com Termo', 'Sem Termo'],
+        datasets: [{
+            data: [
+                {{ equipment_data.termo_stats.com_termo }},
+                {{ equipment_data.termo_stats.sem_termo }}
+            ],
+            backgroundColor: [colors.primary, colors.warning],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        ...commonOptions,
+        cutout: '70%',
+        plugins: {
+            ...commonOptions.plugins,
+            legend: { position: 'right' }
+        }
+    }
+});
+{% endif %}
+
+// 3. Status by Type Chart (Stacked Bar)
+{% if equipment_data and equipment_data.status_by_tipo %}
+const statusTipoData = {{ equipment_data.status_by_tipo | tojson }};
+const tipos = [...new Set(statusTipoData.map(item => item[0]))];
+const statuses = [...new Set(statusTipoData.map(item => item[1]))];
+
+const statusTipoDatasets = statuses.map((status, idx) => ({
+    label: status,
+    data: tipos.map(tipo => {
+        const found = statusTipoData.find(item => item[0] === tipo && item[1] === status);
+        return found ? found[2] : 0;
+    }),
+    backgroundColor: chartColors[idx % chartColors.length],
+    borderRadius: 4
+}));
+
+const statusTipoCtx = document.getElementById('statusTipoChart').getContext('2d');
+new Chart(statusTipoCtx, {
+    type: 'bar',
+    data: {
+        labels: tipos,
+        datasets: statusTipoDatasets
+    },
+    options: {
+        ...commonOptions,
+        indexAxis: 'y',
+        scales: {
+            x: { stacked: true, grid: { color: '#f0f0f0' } },
+            y: { stacked: true, grid: { display: false } }
+        }
+    }
+});
+{% endif %}
+
+// 4. UF Distribution Chart
+{% if equipment_data and equipment_data.by_uf %}
+const ufData = {{ equipment_data.by_uf | tojson }};
+const ufCtx = document.getElementById('ufChart').getContext('2d');
+new Chart(ufCtx, {
+    type: 'bar',
+    data: {
+        labels: ufData.map(item => item[0]),
+        datasets: [{
+            label: 'Equipamentos',
+            data: ufData.map(item => item[1]),
+            backgroundColor: colors.secondary,
+            borderRadius: 6
+        }]
+    },
+    options: {
+        ...commonOptions,
+        indexAxis: 'y',
+        scales: {
+            x: { 
+                beginAtZero: true,
+                grid: { color: '#f0f0f0' }
+            },
+            y: { grid: { display: false } }
+        }
+    }
+});
+{% endif %}
+
+// 5. CNPJ Distribution Chart (Combo: Bar + Line)
+{% if equipment_data and equipment_data.by_cnpj %}
+const cnpjData = {{ equipment_data.by_cnpj | tojson }};
+const cnpjLabels = cnpjData.map(item => {
+    const cnpj = item[0];
+    // Extract company name from CNPJ options
+    const cnpjMap = {
+        '24.329.959/0001-33': 'ATENAS',
+        '15.541.957/0001-12': 'TELOS',
+        '14.706.283/0001-04': 'OPUS (04)',
+        '14.706.283/0002-87': 'OPUS (87)',
+        '42.537.087/0001-80': 'OPUS SERV. ESP. (80)',
+        '49.996.326/0001-00': 'OPUS MANUT.',
+        '50.016.866/0001-69': 'OPUS LOG.',
+        '42.537.087/0002-61': 'OPUS SERV. ESP. (61)'
+    };
+    return cnpjMap[cnpj] || cnpj;
+});
+
+const cnpjCtx = document.getElementById('cnpjChart').getContext('2d');
+new Chart(cnpjCtx, {
+    type: 'bar',
+    data: {
+        labels: cnpjLabels,
+        datasets: [{
+            type: 'bar',
+            label: 'Quantidade',
+            data: cnpjData.map(item => item[1]),
+            backgroundColor: colors.primary,
+            yAxisID: 'y',
+            borderRadius: 4
+        }, {
+            type: 'line',
+            label: 'Valor Total (R$)',
+            data: cnpjData.map(item => item[2]),
+            borderColor: colors.warning,
+            backgroundColor: 'transparent',
+            yAxisID: 'y1',
+            tension: 0.3
+        }]
+    },
+    options: {
+        ...commonOptions,
+        scales: {
+            y: {
+                type: 'linear',
+                position: 'left',
+                beginAtZero: true,
+                title: { display: true, text: 'Quantidade' }
+            },
+            y1: {
+                type: 'linear',
+                position: 'right',
+                beginAtZero: true,
+                title: { display: true, text: 'Valor (R$)' },
+                grid: { drawOnChartArea: false }
+            }
+        }
+    }
+});
+{% endif %}
+
+// 6. Value Distribution Chart
+{% if equipment_data and equipment_data.value_distribution %}
+const valueDistData = {{ equipment_data.value_distribution | tojson }};
+const valueDistCtx = document.getElementById('valueDistChart').getContext('2d');
+new Chart(valueDistCtx, {
+    type: 'pie',
+    data: {
+        labels: valueDistData.map(item => item[0]),
+        datasets: [{
+            data: valueDistData.map(item => item[1]),
+            backgroundColor: chartColors,
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        ...commonOptions,
+        plugins: {
+            ...commonOptions.plugins,
+            legend: { position: 'right' }
+        }
+    }
+});
+{% endif %}
+
+// 7. Top Brands Chart
+{% if equipment_data and equipment_data.by_marca %}
+const marcaData = {{ equipment_data.by_marca | tojson }};
+const marcaCtx = document.getElementById('marcaChart').getContext('2d');
+new Chart(marcaCtx, {
+    type: 'bar',
+    data: {
+        labels: marcaData.map(item => item[0] || 'Não informado'),
+        datasets: [{
+            label: 'Equipamentos',
+            data: marcaData.map(item => item[1]),
+            backgroundColor: colors.success,
+            borderRadius: 6
+        }]
+    },
+    options: {
+        ...commonOptions,
+        indexAxis: 'y',
+        scales: {
+            x: { 
+                beginAtZero: true,
+                grid: { color: '#f0f0f0' }
+            },
+            y: { grid: { display: false } }
+        }
+    }
+});
+{% endif %}
+
+// 8. Overall Status Chart
+{% if equipment_data and equipment_data.by_status %}
+const statusData = {{ equipment_data.by_status | tojson }};
+const statusCtx = document.getElementById('statusChart').getContext('2d');
+new Chart(statusCtx, {
+    type: 'doughnut',
+    data: {
+        labels: statusData.map(item => item[0]),
+        datasets: [{
+            data: statusData.map(item => item[1]),
+            backgroundColor: chartColors,
+            borderWidth: 0
+        }]
+    },
+    options: {
+        ...commonOptions,
+        cutout: '60%',
+        plugins: {
+            ...commonOptions.plugins,
+            legend: { position: 'right' }
+        }
+    }
+});
+{% endif %}
+
+// Add animation on scroll
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+        }
+    });
+}, observerOptions);
+
+document.querySelectorAll('.chart-card, .kpi-card').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'all 0.5s ease-out';
+    observer.observe(el);
+});
+
+console.log('📊 Dashboard executivo carregado com sucesso!');
 </script>
 {% endblock %}

@@ -225,6 +225,111 @@ class Equipment(db.Model):
         return Equipment.query.filter_by(tipo_equipamento='celular').order_by(Equipment.patrimonio).all()
     
     @staticmethod
+    def get_by_marca():
+        """Get equipment count by brand"""
+        return db.session.query(
+            Equipment.marca,
+            func.count(Equipment.id).label('count')
+        ).filter(Equipment.marca.isnot(None)).group_by(Equipment.marca).order_by(func.count(Equipment.id).desc()).limit(10).all()
+    
+    @staticmethod
+    def get_by_cnpj(limit=10):
+        """Get top equipment count by CNPJ (limited for performance)"""
+        # Get top CNPJs by count
+        top_cnpjs = db.session.query(
+            Equipment.cnpj,
+            func.count(Equipment.id).label('count'),
+            func.sum(Equipment.valor).label('total_value')
+        ).filter(
+            Equipment.cnpj.isnot(None), 
+            Equipment.cnpj != ''
+        ).group_by(Equipment.cnpj).order_by(func.sum(Equipment.valor).desc()).limit(limit).all()
+        
+        # Calculate "Outros" bucket for remaining CNPJs
+        if top_cnpjs:
+            top_cnpj_values = [item[0] for item in top_cnpjs]
+            outros = db.session.query(
+                func.count(Equipment.id).label('count'),
+                func.sum(Equipment.valor).label('total_value')
+            ).filter(
+                Equipment.cnpj.isnot(None),
+                Equipment.cnpj != '',
+                Equipment.cnpj.notin_(top_cnpj_values)
+            ).first()
+            
+            if outros and outros[0] > 0:
+                top_cnpjs = list(top_cnpjs) + [('Outros', outros[0], outros[1])]
+        
+        return top_cnpjs
+    
+    @staticmethod
+    def get_antivirus_stats():
+        """Get antivirus statistics"""
+        com_antivirus = Equipment.query.filter_by(antivirus=True).count()
+        sem_antivirus = Equipment.query.filter_by(antivirus=False).count()
+        return {
+            'com_antivirus': com_antivirus,
+            'sem_antivirus': sem_antivirus,
+            'total': com_antivirus + sem_antivirus,
+            'percentual_com': round((com_antivirus / (com_antivirus + sem_antivirus) * 100), 1) if (com_antivirus + sem_antivirus) > 0 else 0
+        }
+    
+    @staticmethod
+    def get_termo_stats():
+        """Get termo assinado statistics"""
+        com_termo = Equipment.query.filter_by(termo_assinado=True).count()
+        sem_termo = Equipment.query.filter_by(termo_assinado=False).count()
+        return {
+            'com_termo': com_termo,
+            'sem_termo': sem_termo,
+            'total': com_termo + sem_termo,
+            'percentual_com': round((com_termo / (com_termo + sem_termo) * 100), 1) if (com_termo + sem_termo) > 0 else 0
+        }
+    
+    @staticmethod
+    def get_value_distribution():
+        """Get value distribution by ranges"""
+        ranges = [
+            ('0-1000', 0, 1000),
+            ('1000-3000', 1000, 3000),
+            ('3000-5000', 3000, 5000),
+            ('5000-10000', 5000, 10000),
+            ('10000+', 10000, float('inf'))
+        ]
+        result = []
+        for label, min_val, max_val in ranges:
+            if max_val == float('inf'):
+                count = Equipment.query.filter(Equipment.valor >= min_val).count()
+            else:
+                count = Equipment.query.filter(Equipment.valor >= min_val, Equipment.valor < max_val).count()
+            if count > 0:
+                result.append((label, count))
+        return result
+    
+    @staticmethod
+    def get_top_responsaveis(limit=10):
+        """Get top equipment holders"""
+        return db.session.query(
+            Equipment.responsavel,
+            func.count(Equipment.id).label('count'),
+            func.sum(Equipment.valor).label('total_value')
+        ).group_by(Equipment.responsavel).order_by(func.count(Equipment.id).desc()).limit(limit).all()
+    
+    @staticmethod
+    def get_recent_additions(limit=10):
+        """Get recently added equipment"""
+        return Equipment.query.order_by(Equipment.created_at.desc()).limit(limit).all()
+    
+    @staticmethod
+    def get_status_by_tipo():
+        """Get status distribution by equipment type"""
+        return db.session.query(
+            Equipment.tipo_equipamento,
+            Equipment.status,
+            func.count(Equipment.id).label('count')
+        ).group_by(Equipment.tipo_equipamento, Equipment.status).all()
+    
+    @staticmethod
     def get_notebooks():
         """Get all notebooks"""
         return Equipment.query.filter_by(tipo_equipamento='notebook').order_by(Equipment.patrimonio).all()

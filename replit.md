@@ -81,7 +81,55 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (September 30, 2025)
 
-### CNPJ Dropdown Configuration - COMPLETED (September 30, 2025 - Latest)
+### Advanced Dashboard Redesign - COMPLETED (September 30, 2025 - Latest)
+- ✅ **Complete Dashboard Overhaul**: Redesigned with modern three-tier layout
+  - **Tier 1 - Executive KPIs**: 4 key metrics cards with gradient designs
+    - Total de Equipamentos with active count
+    - Taxa de Utilização with percentage calculation
+    - Valor Total do Ativo in Brazilian Real
+    - Taxa de Proteção (antivirus coverage)
+  - **Tier 2 - Compliance & Analytics**: 8 interactive charts
+    - Proteção Antivírus (doughnut chart with percentage badges)
+    - Termos Assinados (doughnut chart with compliance status)
+    - Status por Tipo (stacked horizontal bar chart)
+    - Distribuição Geográfica UF (bar chart)
+    - Distribuição por CNPJ (combo bar+line chart)
+    - Distribuição de Valor (pie chart with price ranges)
+    - Top 10 Marcas (horizontal bar chart)
+    - Status Geral (doughnut chart)
+  - **Tier 3 - Drill-down Tables**: Activity feeds and top performers
+    - Top Responsáveis table with ranking badges and value tracking
+    - Recent additions activity feed with equipment details
+    - Quick actions panel for common operations
+- ✅ **Enhanced Backend Analytics**: Added 9 new data methods
+  - `get_by_marca()` - Top 10 brands analysis
+  - `get_by_cnpj()` - CNPJ distribution with values
+  - `get_antivirus_stats()` - Compliance statistics with percentages
+  - `get_termo_stats()` - Terms compliance with percentages
+  - `get_value_distribution()` - Price range distribution
+  - `get_top_responsaveis()` - Top equipment holders
+  - `get_recent_additions()` - Latest equipment entries
+  - `get_status_by_tipo()` - Cross-tabulation of status by type
+  - Updated service layer to expose all analytics
+- ✅ **Modern Design Features**:
+  - Brazilian Portuguese number formatting (pt-BR)
+  - Responsive 12-column grid layout
+  - Smooth animations on scroll with intersection observer
+  - Gradient KPI cards with hover effects
+  - Consistent color palette across all charts
+  - Chart.js 4.4.1 with advanced configurations
+  - Stacked bars, combo charts, and interactive tooltips
+  - Professional card shadows and rounded corners
+- ✅ **UX Enhancements**:
+  - Compliance badges with color-coded status (success/warning/danger)
+  - Rank badges for top performers (gold/silver/bronze)
+  - Progress bars showing distribution
+  - Activity feed with equipment type icons
+  - Currency formatted values throughout
+  - Accessible design with proper contrast
+- Application tested and dashboard loading successfully
+
+### CNPJ Dropdown Configuration - COMPLETED (September 30, 2025)
 - ✅ **CNPJ Field Updated**: Converted from text field to dropdown with company options
   - Added 8 company CNPJs as selectable options:
     - ATENAS SERVIÇO DE APOIO LTDA - 24.329.959/0001-33

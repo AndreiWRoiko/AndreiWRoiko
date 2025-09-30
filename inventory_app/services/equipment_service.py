@@ -106,7 +106,15 @@ class EquipmentService:
             'by_tipo': Equipment.get_by_tipo(),
             'by_fornecedor': Equipment.get_by_fornecedor(),
             'by_segmento': Equipment.get_by_segmento(),
-            'valor_by_cnpj': Equipment.get_valor_by_cnpj()
+            'valor_by_cnpj': Equipment.get_valor_by_cnpj(),
+            'by_marca': Equipment.get_by_marca(),
+            'by_cnpj': Equipment.get_by_cnpj(),
+            'antivirus_stats': Equipment.get_antivirus_stats(),
+            'termo_stats': Equipment.get_termo_stats(),
+            'value_distribution': Equipment.get_value_distribution(),
+            'top_responsaveis': Equipment.get_top_responsaveis(limit=10),
+            'recent_additions': Equipment.get_recent_additions(limit=5),
+            'status_by_tipo': Equipment.get_status_by_tipo()
         })
         return stats
     
