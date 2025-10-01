@@ -49,3 +49,27 @@ Security features include CSRF protection, secure session management, and proxy 
 - **Environment Variables**: `SESSION_SECRET`, `DATABASE_URL`
 - **WSGI Compatibility**: Standard WSGI application structure
 - **Replit Integration**: Fully configured for the Replit environment.
+
+## Recent Changes (October 2025)
+
+### Replit Environment Setup
+- **Date**: October 1, 2025
+- **Changes**: Configured the application to run in the Replit environment
+  - Created PostgreSQL database using Replit's managed database service
+  - Configured development workflow to run on port 5000 with Flask development server
+  - Configured production deployment using Gunicorn WSGI server with autoscale deployment target
+  - Verified application functionality (login and registration pages working correctly)
+  - Database tables automatically created on first run
+  - Application supports both development and production environments
+
+### Running the Application
+- **Development**: The application runs automatically using the configured workflow (`python main.py`)
+- **Production**: Deployment is configured to use Gunicorn with the command: `gunicorn --bind 0.0.0.0:5000 --reuse-port wsgi:app`
+- **Port**: Application serves on port 5000 (required for Replit webview)
+- **Database**: PostgreSQL database is automatically configured via `DATABASE_URL` environment variable
+
+### Initial Setup Notes
+- The application warns that no administrator user exists on first run
+- To create an admin user, use the Flask CLI command: `flask db create-admin` (if available)
+- Users registering through the web interface are set to "Pendente" (Pending) status and require admin approval
+- The system uses a role-based access control with three roles: ADM (Admin), Suporte (Support), and Controladoria (Controller)
