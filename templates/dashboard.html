@@ -29,9 +29,12 @@
         border-radius: 16px;
         padding: 1.5rem;
         box-shadow: var(--card-shadow);
-        transition: all 0.3s ease;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
         border: none;
         height: 100%;
+        min-height: 180px;
+        contain: layout style;
+        will-change: transform;
     }
     
     .kpi-card:hover {
@@ -76,6 +79,8 @@
         box-shadow: var(--card-shadow);
         margin-bottom: 1.5rem;
         border: none;
+        min-height: 350px;
+        contain: layout style;
     }
     
     .chart-header {
@@ -574,6 +579,9 @@ const chartColors = [
 const commonOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    animation: {
+        duration: 0
+    },
     plugins: {
         legend: {
             position: 'bottom',
@@ -855,28 +863,7 @@ new Chart(statusCtx, {
 });
 {% endif %}
 
-// Add animation on scroll
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-};
-
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-        }
-    });
-}, observerOptions);
-
-document.querySelectorAll('.chart-card, .kpi-card').forEach(el => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(20px)';
-    el.style.transition = 'all 0.5s ease-out';
-    observer.observe(el);
-});
-
-console.log('📊 Dashboard executivo carregado com sucesso!');
+// Prevent re-animation and store chart instances
+window.chartInstances = window.chartInstances || {};
 </script>
 {% endblock %}
