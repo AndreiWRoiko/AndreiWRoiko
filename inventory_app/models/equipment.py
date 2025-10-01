@@ -182,42 +182,47 @@ class Equipment(db.Model):
     @staticmethod
     def get_by_uf():
         """Get equipment count by UF"""
-        return db.session.query(
+        results = db.session.query(
             Equipment.uf, 
             func.count(Equipment.id).label('count')
         ).group_by(Equipment.uf).all()
+        return [(row[0], row[1]) for row in results]
     
     @staticmethod
     def get_valor_by_cnpj():
         """Get total value by CNPJ"""
-        return db.session.query(
+        results = db.session.query(
             Equipment.cnpj,
             func.sum(Equipment.valor).label('total_valor')
         ).group_by(Equipment.cnpj).all()
+        return [(row[0], float(row[1]) if row[1] else 0) for row in results]
     
     @staticmethod
     def get_by_fornecedor():
         """Get equipment count by supplier/fornecedor"""
-        return db.session.query(
+        results = db.session.query(
             Equipment.fornecedor,
             func.count(Equipment.id).label('count')
         ).filter(Equipment.fornecedor.isnot(None)).group_by(Equipment.fornecedor).order_by(func.count(Equipment.id).desc()).all()
+        return [(row[0], row[1]) for row in results]
     
     @staticmethod
     def get_by_status():
         """Get equipment count by status"""
-        return db.session.query(
+        results = db.session.query(
             Equipment.status,
             func.count(Equipment.id).label('count')
         ).group_by(Equipment.status).order_by(func.count(Equipment.id).desc()).all()
+        return [(row[0], row[1]) for row in results]
     
     @staticmethod
     def get_by_tipo():
         """Get equipment count by type (notebook/celular)"""
-        return db.session.query(
+        results = db.session.query(
             Equipment.tipo_equipamento,
             func.count(Equipment.id).label('count')
         ).group_by(Equipment.tipo_equipamento).order_by(func.count(Equipment.id).desc()).all()
+        return [(row[0], row[1]) for row in results]
     
     @staticmethod
     def get_celulares():
@@ -227,10 +232,11 @@ class Equipment(db.Model):
     @staticmethod
     def get_by_marca():
         """Get equipment count by brand"""
-        return db.session.query(
+        results = db.session.query(
             Equipment.marca,
             func.count(Equipment.id).label('count')
         ).filter(Equipment.marca.isnot(None)).group_by(Equipment.marca).order_by(func.count(Equipment.id).desc()).limit(10).all()
+        return [(row[0], row[1]) for row in results]
     
     @staticmethod
     def get_by_cnpj(limit=10):
@@ -245,9 +251,12 @@ class Equipment(db.Model):
             Equipment.cnpj != ''
         ).group_by(Equipment.cnpj).order_by(func.sum(Equipment.valor).desc()).limit(limit).all()
         
+        # Convert to list of tuples
+        result = [(row[0], row[1], float(row[2]) if row[2] else 0) for row in top_cnpjs]
+        
         # Calculate "Outros" bucket for remaining CNPJs
-        if top_cnpjs:
-            top_cnpj_values = [item[0] for item in top_cnpjs]
+        if result:
+            top_cnpj_values = [item[0] for item in result]
             outros = db.session.query(
                 func.count(Equipment.id).label('count'),
                 func.sum(Equipment.valor).label('total_value')
@@ -258,9 +267,9 @@ class Equipment(db.Model):
             ).first()
             
             if outros and outros[0] > 0:
-                top_cnpjs = list(top_cnpjs) + [('Outros', outros[0], outros[1])]
+                result.append(('Outros', outros[0], float(outros[1]) if outros[1] else 0))
         
-        return top_cnpjs
+        return result
     
     @staticmethod
     def get_antivirus_stats():
@@ -309,11 +318,12 @@ class Equipment(db.Model):
     @staticmethod
     def get_top_responsaveis(limit=10):
         """Get top equipment holders"""
-        return db.session.query(
+        results = db.session.query(
             Equipment.responsavel,
             func.count(Equipment.id).label('count'),
             func.sum(Equipment.valor).label('total_value')
         ).group_by(Equipment.responsavel).order_by(func.count(Equipment.id).desc()).limit(limit).all()
+        return [(row[0], row[1], float(row[2]) if row[2] else 0) for row in results]
     
     @staticmethod
     def get_recent_additions(limit=10):
@@ -323,11 +333,12 @@ class Equipment(db.Model):
     @staticmethod
     def get_status_by_tipo():
         """Get status distribution by equipment type"""
-        return db.session.query(
+        results = db.session.query(
             Equipment.tipo_equipamento,
             Equipment.status,
             func.count(Equipment.id).label('count')
         ).group_by(Equipment.tipo_equipamento, Equipment.status).all()
+        return [(row[0], row[1], row[2]) for row in results]
     
     @staticmethod
     def get_notebooks():
@@ -337,7 +348,8 @@ class Equipment(db.Model):
     @staticmethod
     def get_by_segmento():
         """Get equipment count by segment (marca/brand)"""
-        return db.session.query(
+        results = db.session.query(
             Equipment.marca,
             func.count(Equipment.id).label('count')
         ).filter(Equipment.marca.isnot(None)).group_by(Equipment.marca).order_by(func.count(Equipment.id).desc()).all()
+        return [(row[0], row[1]) for row in results]
